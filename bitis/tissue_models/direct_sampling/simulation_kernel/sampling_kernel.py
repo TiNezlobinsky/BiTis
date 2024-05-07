@@ -3,19 +3,19 @@ from numba import njit
 
 
 @njit
-def sampling_kernel(simulation, simulation_path_coordinates, training_data, pad_i, pad_j, scan_fraction=0.1, 
+def sampling_kernel(simulation, simulation_path, training_data, pad_i, pad_j, scan_fraction=0.1, 
                     threshold=0.0):
 
     training_index = 0
 
-    for simulation_index in range(len(simulation_path_coordinates)):
-        simulation_node  = simulation_path_coordinates[simulation_index]
+    for simulation_index in range(len(simulation_path)):
+        simulation_node  = simulation_path[simulation_index]
         simulation_event = simulation[simulation_node[0] - pad_i:simulation_node[0] + pad_i,
                                       simulation_node[1] - pad_j:simulation_node[1] + pad_j]
 
         mindist  = np.inf
         tries    = 0       
-        max_scan = len(simulation_path_coordinates)*scan_fraction
+        max_scan = len(simulation_path)*scan_fraction
 
         while True:
             training_index += 1
