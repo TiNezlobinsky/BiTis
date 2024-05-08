@@ -3,8 +3,8 @@ from numba import njit
 
 
 @njit
-def labeled_kernel(simulation, labeled_matrix, simulation_path, training_data, training_meta,
-                    pad_i, pad_j, scan_fraction=0.1, threshold=0.0):
+def labeled_kernel(simulation, labeled_matrix, simulation_path, training_data, training_meta, 
+                   pad_i, pad_j, scan_fraction=0.1, threshold=0.0):
     
     training_indices = np.zeros(np.unique(labeled_matrix).size, dtype=numba.int32)
 
