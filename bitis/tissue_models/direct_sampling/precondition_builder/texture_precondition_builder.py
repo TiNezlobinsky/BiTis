@@ -2,10 +2,10 @@ from bitis.tissue_models.direct_sampling.precondition_builder.precondition_build
 
 
 class TexturePreconditionBuilder(PreconditionBuilder):
-    def __init__(self, tex_size):
+    def __init__(self, simulation_size):
         PreconditionBuilder.__init__(self)
 
-        self.tex_size = tex_size
+        self.simulation_size = simulation_size
 
     def add_rectangle(self, cell_type, center, a, b):
         pass

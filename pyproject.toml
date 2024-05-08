@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling", "numpy", "scipy", "numba"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bitis"
+version = "0.8.0"
+authors = [
+  { name="Arstanbek Okenov", email="arstanbek.okenov@ugent.be" },
+  { name="Timur Nezlobinsky", email="nezlobinsky@gmail.com" }
+
+]
+description = ""
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = ""
+
+[tool.hatch.build.targets.wheel]
+packages = ["bitis"]

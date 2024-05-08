@@ -6,8 +6,6 @@ from bitis.tissue_models.direct_sampling.simulation_kernel.labeled_kernel import
 
 class TextureSimulation:
     def __init__(self):
-        self.sim_size = []
-
         self.precondition_matrix = None
         self.labeled_matrix      = None
         self.simulation_path     = None

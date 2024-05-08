@@ -2,11 +2,11 @@ from bitis.tissue_models.direct_sampling.precondition_builder.precondition_build
 
 
 class MapPreconditionBuilder(PreconditionBuilder):
-    def __init__(self, tex_size, image):
+    def __init__(self, simulation_size, image):
         PreconditionBuilder.__init__(self)
 
-        self.tex_size = tex_size
-        self.image    = image
+        self.simulation_size = simulation_size
+        self.image           = image
 
     def set_rule(self, func):
         pass
