@@ -3,11 +3,11 @@ import numpy as np
 from bitis.tissue_models.direct_sampling.training_data_builder.training_data_builder import TrainingDataBuilder
 
 
-class LabeledDataBuilder(TrainingDataBuilder):
-    def __init__(self, template_size, training_textures_set, labeled_matrices):
+class SegmentedDataBuilder(TrainingDataBuilder):
+    def __init__(self, template_size, training_textures_set, segmented_matrices):
         TrainingDataBuilder.__init__(self, template_size, training_textures_set)
 
-        self.labeled_matrices = labeled_matrices
+        self.segmented_matrices = segmented_matrices
 
         # raise error if labeled_matrices length != training_textures_set length
 
@@ -15,20 +15,20 @@ class LabeledDataBuilder(TrainingDataBuilder):
         pad_i = self.template[0] // 2
         pad_j = self.template[1] // 2
         
-        labels = []
-        for matrix in self.labeled_matrices:
-            labels.extend(list(np.unique(matrix)))
+        segments = []
+        for matrix in self.segmented_matrices:
+            segments.extend(list(np.unique(matrix)))
 
         meta   = []
         events = []
 
         start_index = 0
-        for label in labels:
-            meta.extend([label, float(start_index)])
+        for segment in segments:
+            meta.extend([segment, float(start_index)])
 
             for idx in len(self.training_textures_set):
                 texture = self.training_textures_set[idx]
-                matrix  = self.labeled_matrices[idx]
+                matrix  = self.segmented_matrices[idx]
                 ni, nj = texture.shape
 
                 events_ = []
@@ -39,7 +39,7 @@ class LabeledDataBuilder(TrainingDataBuilder):
                         if event.shape[0] != 2*pad_i or event.shape[1] != 2*pad_j:
                             continue
                         if 0 not in event:
-                            if np.all(labeled == label):
+                            if np.all(labeled == segment):
                                 events_.append(event)
 
                 events_ = np.random.permutation(events_)
