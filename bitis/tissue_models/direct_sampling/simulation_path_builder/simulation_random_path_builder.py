@@ -14,11 +14,11 @@ class SimulationRandomPathBuilder(SimulationPathBuilder):
         if len(template_size) > 2:
             pad_k = template_size[2] // 2
 
-        ci = np.arange(pad_i, simulation_size[0] - pad_i)
-        cj = np.arange(pad_j, simulation_size[1] - pad_j)
+        ci = np.arange(pad_i, (simulation_size[0] + template_size[0]) - pad_i)
+        cj = np.arange(pad_j, (simulation_size[1] + template_size[1]) - pad_j)
         ck = None
         if pad_k:
-            ck = np.arange(pad_k, simulation_size[2] - pad_k)
+            ck = np.arange(pad_k, (simulation_size[2] + template_size[2]) - pad_k)
         Ci, Cj = np.meshgrid(ci, cj)
         Ck = None
         if ck:
