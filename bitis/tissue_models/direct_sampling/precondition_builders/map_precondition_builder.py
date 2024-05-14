@@ -1,4 +1,4 @@
-from bitis.tissue_models.direct_sampling.precondition_builder.precondition_builder import PreconditionBuilder
+from bitis.tissue_models.direct_sampling.precondition_builders.precondition_builder import PreconditionBuilder
 
 
 class MapPreconditionBuilder(PreconditionBuilder):

@@ -1,7 +1,7 @@
 import numpy as np
 from skimage import transform
 
-from bitis.tissue_models.direct_sampling.training_data_builder.training_data_builder import TrainingDataBuilder
+from bitis.tissue_models.direct_sampling.training_data_builders.training_data_builder import TrainingDataBuilder
 
 
 class RotatedDataBuilder(TrainingDataBuilder):

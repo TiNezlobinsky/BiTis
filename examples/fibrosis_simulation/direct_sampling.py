@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-from bitis.tissue_models.direct_sampling.precondition_builder.texture_precondition_builder import TexturePreconditionBuilder
+from bitis.tissue_models.direct_sampling.precondition_builders.texture_precondition_builder import TexturePreconditionBuilder
 from bitis.tissue_models.direct_sampling.simulation_path_builder.simulation_random_path_builder import SimulationRandomPathBuilder
-from bitis.tissue_models.direct_sampling.training_data_builder.training_data_builder import TrainingDataBuilder
-from bitis.tissue_models.direct_sampling.simulation.texture_simulation import TextureSimulation
+from bitis.tissue_models.direct_sampling.training_data_builders.training_data_builder import TrainingDataBuilder
+from bitis.tissue_models.direct_sampling.simulations.texture_simulation import TextureSimulation
 
 
 def rgb2gray(rgb):
@@ -13,7 +13,7 @@ def rgb2gray(rgb):
 
 
 simulation_size = np.array([100, 100])
-template_size   = np.array([9, 9])
+template_size   = np.array([12, 12])
 
 texture_precondition_builder = TexturePreconditionBuilder(simulation_size)
 precondition_matrix = np.zeros(simulation_size)
@@ -31,13 +31,13 @@ training_data = training_data_builder.build()
 
 simulation = TextureSimulation()
 simulation.precondition_matrix = precondition_matrix
-simulation.labeled_matrix      = None
 simulation.simulation_path     = simulation_path
 simulation.training_data       = training_data
-simulation.trainig_meta        = None
-simulation.simulation_kernel   = None
 
 simulated_tex = simulation.run()
 
-plt.imshow(simulated_tex)
+fig, ax = plt.subplots(1,2)
+
+ax[0].imshow(nim)
+ax[1].imshow(simulated_tex)
 plt.show()

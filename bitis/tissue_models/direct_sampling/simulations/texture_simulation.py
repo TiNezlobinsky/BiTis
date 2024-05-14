@@ -1,8 +1,8 @@
 import numpy as np
 from numba_progress import ProgressBar
 
-from bitis.tissue_models.direct_sampling.simulation_kernel.sampling_kernel import sampling_kernel
-from bitis.tissue_models.direct_sampling.simulation_kernel.labeled_kernel import labeled_kernel
+from bitis.tissue_models.direct_sampling.simulations.simulation_kernels.sampling_kernel import sampling_kernel
+from bitis.tissue_models.direct_sampling.simulations.simulation_kernels.labeled_kernel import labeled_kernel
 
 
 class TextureSimulation:

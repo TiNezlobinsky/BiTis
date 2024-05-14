@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class TrainingDataBuilder:
     def __init__(self, template_size, training_textures_set):
         self.template_size = template_size
