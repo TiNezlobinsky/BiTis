@@ -14,8 +14,9 @@ class SimulationRandomPathBuilder(SimulationPathBuilder):
         if len(template_size) > 2:
             pad_k = template_size[2] // 2
 
-        ci = np.arange(pad_i, (simulation_size[0] + template_size[0]) - pad_i)
-        cj = np.arange(pad_j, (simulation_size[1] + template_size[1]) - pad_j)
+        ci = np.arange(pad_i, (simulation_size[0] + 2*pad_i) - pad_i)
+        cj = np.arange(pad_j, (simulation_size[1] + 2*pad_j) - pad_j)
+
         ck = None
         if pad_k:
             ck = np.arange(pad_k, (simulation_size[2] + template_size[2]) - pad_k)
@@ -26,4 +27,5 @@ class SimulationRandomPathBuilder(SimulationPathBuilder):
         coordinates = np.stack((Ci.ravel(), Cj.ravel()), axis=1)
         if Ck:
             coordinates = np.stack((Ci.ravel(), Cj.ravel(), Ck.ravel()), axis=1)
+
         return np.random.permutation(coordinates)

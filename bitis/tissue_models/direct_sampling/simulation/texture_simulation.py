@@ -1,4 +1,5 @@
 import numpy as np
+from numba_progress import ProgressBar
 
 from bitis.tissue_models.direct_sampling.simulation_kernel.sampling_kernel import sampling_kernel
 from bitis.tissue_models.direct_sampling.simulation_kernel.labeled_kernel import labeled_kernel
@@ -31,10 +32,12 @@ class TextureSimulation:
                                         self.precondition_matrix.shape[1] + 2*pad_j])
             labeled_matrix_[pad_i:-pad_i, pad_j:-pad_j] = self.labeled_matrix
 
-            return labeled_kernel(simulation, labeled_matrix_, self.simulation_path, self.training_data, 
-                                  self.training_meta, pad_i, pad_j, self.scan_faction, self.threshold)
+            with ProgressBar(total=len(self.simulation_path)) as progress:
+                return labeled_kernel(simulation, labeled_matrix_, self.simulation_path, self.training_data, 
+                                  self.training_meta, pad_i, pad_j, progress, self.scan_faction, self.threshold)
         else:
-            return sampling_kernel(simulation, self.simulation_path, self.training_data, pad_i, pad_j, 
-                                   self.scan_faction, self.threshold)
+            with ProgressBar(total=len(self.simulation_path)) as progress:
+                return sampling_kernel(simulation, self.simulation_path, self.training_data, pad_i, pad_j, 
+                                                    progress, self.scan_faction, self.threshold)
 
 

@@ -4,7 +4,7 @@ from numba import njit
 
 @njit
 def labeled_kernel(simulation, labeled_matrix, simulation_path, training_data, training_meta, 
-                   pad_i, pad_j, scan_fraction=0.1, threshold=0.0):
+                   pad_i, pad_j, progress, scan_fraction=0.1, threshold=0.0):
     
     training_indices = np.zeros(np.unique(labeled_matrix).size, dtype=numba.int32)
 
@@ -46,7 +46,9 @@ def labeled_kernel(simulation, labeled_matrix, simulation_path, training_data, t
     
                 if tries > max_scan:
                     simulation[int(simulation_node[0]), int(simulation_node[1])] =  labeled_events[best_index][pad_i, pad_j]
-                    break                    
+                    break         
+
+        progress.update(1)           
                         
     simulation = simulation[pad_i:-pad_i, pad_j:-pad_j]
 
