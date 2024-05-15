@@ -6,6 +6,24 @@ from bitis.tissue_models.direct_sampling.simulations.simulation_kernels.labeled_
 
 
 class TextureSimulation:
+    """
+    Class representing a texture simulation.
+
+    Attributes:
+        precondition_matrix (ndarray): The precondition matrix.
+        labeled_matrix (ndarray): The labeled matrix.
+        simulation_path (str): The simulation path.
+        training_data (list): List of training data.
+        training_meta (object): Training metadata.
+        simulation_kernel (object): The simulation kernel.
+        scan_faction (float): The scan fraction.
+        threshold (float): The threshold value.
+
+    Methods:
+        run(): Runs the texture simulation.
+
+    """
+
     def __init__(self):
         self.precondition_matrix = None
         self.labeled_matrix      = None
@@ -18,7 +36,16 @@ class TextureSimulation:
         self.threshold    = 0.0
 
     def run(self):
-        # raise error if all training_data are not with the same shape
+        """
+        Runs the texture simulation.
+
+        Returns:
+            ndarray: The result of the texture simulation.
+
+        Raises:
+            ValueError: If all training_data are not with the same shape.
+
+        """
         template_size = self.training_data[0].shape
         pad_i = template_size[0] // 2
         pad_j = template_size[1] // 2

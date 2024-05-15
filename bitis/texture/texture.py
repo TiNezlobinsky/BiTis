@@ -3,7 +3,7 @@
 class Texture:
     def __init__(self):
         self.matrix     = None
-        self.properties = None
+        self.properties = {}
 
     def __getitem__(self, index):
         return self.matrix[index]
