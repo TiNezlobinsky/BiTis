@@ -1,6 +1,19 @@
 
 
 class Texture:
+    """
+    A class representing a texture.
+
+    Attributes:
+    - matrix (list): The matrix representing the texture.
+    - properties (dict): Additional properties of the texture.
+
+    Methods:
+    - __getitem__(index): Get the value at the specified index in the texture matrix.
+    - __setitem__(index, value): Set the value at the specified index in the texture matrix.
+    - __repr__(): Return a string representation of the Texture object.
+    """
+
     def __init__(self):
         self.matrix     = None
         self.properties = {}

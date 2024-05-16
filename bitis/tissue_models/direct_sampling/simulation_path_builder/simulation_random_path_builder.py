@@ -8,6 +8,16 @@ class SimulationRandomPathBuilder(SimulationPathBuilder):
         SimulationPathBuilder.__init__(self)
 
     def build(self, template_size, simulation_size):
+        """
+        Builds a random path for simulation based on the given template size and simulation size.
+
+        Args:
+            template_size (tuple): The size of the template.
+            simulation_size (tuple): The size of the simulation.
+
+        Returns:
+            numpy.ndarray: A random permutation of coordinates for the simulation path.
+        """
         pad_i = template_size[0] // 2
         pad_j = template_size[1] // 2
         pad_k = None

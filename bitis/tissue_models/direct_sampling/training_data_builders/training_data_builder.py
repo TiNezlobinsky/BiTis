@@ -3,10 +3,25 @@ import numpy as np
 
 class TrainingDataBuilder:
     def __init__(self, template_size, training_textures_set):
+        """
+        Initializes a TrainingDataBuilder object.
+
+        Args:
+            template_size (tuple): The size of the template.
+            training_textures_set (list): A list of training textures.
+
+        """
         self.template_size = template_size
         self.training_textures_set = training_textures_set
 
     def build(self):
+        """
+        Builds the training data.
+
+        Returns:
+            numpy.ndarray: The built training data.
+
+        """
         pad_i = self.template_size[0] // 2
         pad_j = self.template_size[1] // 2
 

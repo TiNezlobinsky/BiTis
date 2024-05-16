@@ -6,11 +6,28 @@ from bitis.tissue_models.direct_sampling.training_data_builders.training_data_bu
 
 class RotatedDataBuilder(TrainingDataBuilder):
     def __init__(self, template_size, training_textures_set, angles_matrix):
+        """
+        A class for building rotated training data.
+
+        Args:
+            template_size (tuple): The size of the template.
+            training_textures_set (list): List of training textures.
+            angles_matrix (numpy.ndarray): Matrix of angles.
+
+        """
         TrainingDataBuilder.__init__(self, template_size, training_textures_set)
 
         self.angles_matrix = angles_matrix
 
     def build(self):
+        """
+        Build the rotated training data.
+
+        Returns:
+            numpy.ndarray: The rotated training data.
+            list: The metadata.
+
+        """
         pad_i = self.template[0] // 2
         pad_j = self.template[1] // 2
 

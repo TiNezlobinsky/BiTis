@@ -5,6 +5,15 @@ from bitis.tissue_models.direct_sampling.training_data_builders.training_data_bu
 
 class SegmentedDataBuilder(TrainingDataBuilder):
     def __init__(self, template_size, training_textures_set, segmented_matrices):
+        """
+        Initializes a SegmentedDataBuilder object.
+
+        Args:
+            template_size (tuple): The size of the template.
+            training_textures_set (list): List of training textures.
+            segmented_matrices (list): List of segmented matrices.
+
+        """
         TrainingDataBuilder.__init__(self, template_size, training_textures_set)
 
         self.segmented_matrices = segmented_matrices
@@ -12,6 +21,13 @@ class SegmentedDataBuilder(TrainingDataBuilder):
         # raise error if labeled_matrices length != training_textures_set length
 
     def build(self):
+        """
+        Builds the segmented data.
+
+        Returns:
+            tuple: A tuple containing the events and meta information.
+
+        """
         pad_i = self.template[0] // 2
         pad_j = self.template[1] // 2
         
