@@ -17,6 +17,9 @@ class PatternProperties:
         """
         Returns a string representation of the PatternProperties object.
         """
-        return f"PatternProperties(density={self.density}, elongation={self.elongation}, orientation={self.orientation}, compactness={self.compactness})"
+        return (f'PatternProperties(density={self.density}, '
+                + 'elongation={self.elongation}, '
+                + f'orientation={self.orientation}, '
+                + f'compactness={self.compactness})')
 
 
