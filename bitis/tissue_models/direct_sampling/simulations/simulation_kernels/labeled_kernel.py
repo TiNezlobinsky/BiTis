@@ -1,8 +1,9 @@
+import numba
 import numpy as np
 from numba import njit
 
 
-@njit
+@njit(nogil=True)
 def labeled_kernel(simulation, labeled_matrix, simulation_path, training_data, training_meta, 
                    pad_i, pad_j, progress, scan_fraction=0.1, threshold=0.0):
     

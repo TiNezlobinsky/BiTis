@@ -29,7 +29,7 @@ class TextureSimulation:
         self.labeled_matrix      = None
         self.simulation_path     = None
         self.training_data       = []
-        self.trainig_meta        = None
+        self.training_meta       = None
         self.simulation_kernel   = None
 
         self.scan_faction = 0.8

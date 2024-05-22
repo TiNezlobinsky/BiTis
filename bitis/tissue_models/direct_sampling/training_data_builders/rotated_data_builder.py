@@ -28,8 +28,8 @@ class RotatedDataBuilder(TrainingDataBuilder):
             list: The metadata.
 
         """
-        pad_i = self.template[0] // 2
-        pad_j = self.template[1] // 2
+        pad_i = self.template_size[0] // 2
+        pad_j = self.template_size[1] // 2
 
         angles = list(np.unique(self.angles_matrix))
 
