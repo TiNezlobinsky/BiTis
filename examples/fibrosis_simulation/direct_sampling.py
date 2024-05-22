@@ -21,10 +21,8 @@ precondition_matrix = np.zeros(simulation_size)
 simulation_path_builder = SimulationRandomPathBuilder()
 simulation_path = simulation_path_builder.build(template_size, simulation_size)
 
-im = plt.imread("../../../MPS_generator/original_texs/or_tex_34.png")
-gim = rgb2gray(im)
-nim = np.where(gim > 0.5, 1, 2)
-training_textures_set = [nim]
+original_tex = np.load("../data/example_texture.npy")
+training_textures_set = [original_tex]
 
 training_data_builder = TrainingDataBuilder(template_size, training_textures_set)
 training_data = training_data_builder.build()
@@ -38,6 +36,6 @@ simulated_tex = simulation.run()
 
 fig, ax = plt.subplots(1,2)
 
-ax[0].imshow(nim)
+ax[0].imshow(original_tex)
 ax[1].imshow(simulated_tex)
 plt.show()
