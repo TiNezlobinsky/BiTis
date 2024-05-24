@@ -18,14 +18,14 @@ class DistributionEllipse:
     @property
     def full_radius(self):
         r, _ = PolarPlots.rotated_ellipse(0.5 * self.width, 0.5 * self.height, 
-                                          self.theta, n=100)
+                                          self.orientation, n=100)
         return r
 
     @property
     def full_theta(self):
         _, theta = PolarPlots.rotated_ellipse(0.5 * self.width,
                                               0.5 * self.height,
-                                              self.theta, n=100)
+                                              self.orientation, n=100)
         return theta
 
 

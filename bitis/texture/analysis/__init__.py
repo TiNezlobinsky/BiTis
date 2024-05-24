@@ -1,0 +1,1 @@
+from .objects_analysis import ObjectAnalysis

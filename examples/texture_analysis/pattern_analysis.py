@@ -1,52 +1,46 @@
 from pathlib import Path
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import ndimage
 from skimage import measure, morphology, segmentation
 
 from bitis.texture.texture import Texture
-from bitis.texture.properties_builders.pattern_properties_builder import PatternPropertiesBuilder
+from bitis.texture.properties import (
+    PatternPropertiesBuilder,
+    DistributionEllipseBuilder,
+    PolarPlots
+)
 
 
 def rgb2gray(rgb):
     return np.dot(rgb[..., :3], [0.2989, 0.5870, 0.1140])
 
 
-class ErosionSegmentation:
-    def __init__(self) -> None:
-        pass
+def swap_axis(angle):
+    """
+    Swap axis for polar plot.
+    """
+    return 0.5 * np.pi - angle
 
-    @staticmethod
-    def segment(image, min_distance=1, min_seed_size=10):
-        distance = ndimage.distance_transform_edt(image)
 
-        seeds_mask = distance > min_distance
-        seeds_mask = morphology.remove_small_objects(seeds_mask, min_seed_size)
-        seeds_label, seeds_num = measure.label(seeds_mask, connectivity=1,
-                                               return_num=True)
-        seeds_index = np.arange(1, seeds_num + 1)
+def draw_anisotropy(ax, objects_props, n_std=2):
+    objects_props = objects_props[objects_props['area'] >= 5]
+    dist_ellipse_builder = DistributionEllipseBuilder()
+    dist_ellipse = dist_ellipse_builder.build(objects_props)
+    full_theta = swap_axis(dist_ellipse.full_theta)
+    orientation = swap_axis(dist_ellipse.orientation)
+    r, theta, d = PolarPlots.sort_by_density(objects_props['axis_ratio'],
+                                             swap_axis(objects_props['orientation']))
 
-        centroids = ndimage.minimum_position(-distance, seeds_label,
-                                             index=seeds_index)
-        centroids = np.array(centroids)
+    ax.scatter(theta, r, c=d, s=30, alpha=1, cmap='viridis')
+    ax.plot(full_theta, dist_ellipse.full_radius, color='red')
 
-        mask = np.zeros(distance.shape, dtype=bool)
-        mask[tuple(centroids.T)] = True
-        markers = seeds_label.copy()
-        markers[~mask] = 0
-
-        segmented = segmentation.watershed(-distance, markers,
-                                           mask=image,
-                                           watershed_line=True)
-
-        non_segmented = image.copy()
-        non_segmented[segmented > 0] = 0
-        non_segmented_label, n = measure.label(non_segmented, connectivity=1,
-                                               return_num=True)
-
-        non_segmented_label[segmented > 0] = n + segmented[segmented > 0]
-
-        return non_segmented_label
+    ax.quiver(0, 0, orientation, 0.5 * dist_ellipse.width,
+              angles='xy', scale_units='xy', scale=1, color='red')
+    ax.quiver(0, 0, 0.5 * np.pi + orientation,
+              0.5 * dist_ellipse.height,
+              angles='xy', scale_units='xy', scale=1, color='red')
 
 
 path = Path(__file__).parents[2].joinpath('data')
@@ -57,66 +51,55 @@ for i in range(1, 10):
 
     nim_gen = np.load(path.joinpath('sim_dir_2', f'or_tex_{i}.npy'))
 
-    nim_gen_2 = np.random.random(nim_gen.shape) < (np.sum(nim == 2) / nim.size)
+    nim_uni = np.random.random(nim_gen.shape) < (np.sum(nim == 2) / nim.size)
 
-    nim_gen_2 = nim_gen_2.astype(int) + 1
+    nim_uni = nim_uni.astype(int) + 1
 
     textures = []
+    pattern_props = []
 
-    for im in [nim, nim_gen, nim_gen_2]:
-        im = ErosionSegmentation.segment(im == 2)
+    for im in [nim, nim_gen, nim_uni]:
+        # im = ErosionSegmentation.segment(im == 2)
         pattern_builder = PatternPropertiesBuilder()
-        pattern_properties = pattern_builder.build(im)
+        pattern_properties = pattern_builder.build(im == 2)
+        pattern_props.append(pattern_properties)
+
         texture = Texture()
         texture.matrix = im
         texture.properties["pattern"] = pattern_properties
         texture.properties["object_props"] = pattern_builder.object_props
-
-        print(texture.properties['pattern'])
-
         textures.append(texture)
 
-    fig, axs = plt.subplot_mosaic([['nim', 'nim_gen', 'nim_gen_2'],
-                                   ['sol_com', 'sol_com_gen', 'sol_com_gen_2']])
+    print(pd.concat(pattern_props))
 
-    axs['nim_gen'].sharex(axs['nim'])
-    axs['nim_gen'].sharey(axs['nim'])
+    fig, axs = plt.subplot_mosaic([['im_or', 'im_gen', 'im_uni'],
+                                   ['plot', 'plot_gen', 'plot_uni']],
+                                  per_subplot_kw={('plot', 'plot_gen',
+                                                   'plot_uni'): {'projection': 'polar'}})
 
-    axs['nim_gen_2'].sharex(axs['nim'])
-    axs['nim_gen_2'].sharey(axs['nim'])
+    axs['im_gen'].sharex(axs['im_or'])
+    axs['im_gen'].sharey(axs['im_or'])
 
-    axs['sol_com'].sharex(axs['sol_com_gen'])
-    axs['sol_com'].sharey(axs['sol_com_gen'])
+    axs['im_uni'].sharex(axs['im_or'])
+    axs['im_uni'].sharey(axs['im_or'])
 
-    axs['sol_com_gen_2'].sharex(axs['sol_com_gen'])
-    axs['sol_com_gen_2'].sharey(axs['sol_com_gen'])
+    axs['plot'].sharex(axs['plot_gen'])
+    axs['plot'].sharey(axs['plot_gen'])
 
-    axs['sol_com'].scatter(textures[0].properties["object_props"]['solidity'],
-                           textures[0].properties["object_props"]['complexity'])
+    axs['plot_uni'].sharex(axs['plot_gen'])
+    axs['plot_uni'].sharey(axs['plot_gen'])
 
-    axs['sol_com'].set_ylabel('Complexity')
-    axs['sol_com'].set_xlabel('Solidity')
-    axs['sol_com'].set_xlim(0, 1)
+    draw_anisotropy(axs['plot'], textures[0].properties["object_props"])
+    draw_anisotropy(axs['plot_gen'], textures[1].properties["object_props"])
+    draw_anisotropy(axs['plot_uni'], textures[2].properties["object_props"])
 
-    axs['sol_com_gen'].scatter(textures[1].properties["object_props"]['solidity'],
-                               textures[1].properties["object_props"]['complexity'])
-    axs['sol_com_gen'].set_ylabel('Complexity')
-    axs['sol_com_gen'].set_xlabel('Solidity')
-    axs['sol_com_gen'].set_xlim(0, 1)
+    axs['im_or'].imshow(textures[0].matrix, origin='lower')
+    axs['im_or'].set_title('Original texture')
 
-    axs['sol_com_gen_2'].scatter(textures[2].properties["object_props"]['solidity'],
-                                    textures[2].properties["object_props"]['complexity'])
-    axs['sol_com_gen_2'].set_ylabel('Complexity')
-    axs['sol_com_gen_2'].set_xlabel('Solidity')
-    axs['sol_com_gen_2'].set_xlim(0, 1)
+    axs['im_gen'].imshow(textures[1].matrix, origin='lower')
+    axs['im_gen'].set_title("Generated texture")
 
-    axs['nim'].imshow(textures[0].matrix)
-    axs['nim'].set_title('Original texture')
-
-    axs['nim_gen'].imshow(textures[1].matrix)
-    axs['nim_gen'].set_title("Generated texture")
-
-    axs['nim_gen_2'].imshow(textures[2].matrix)
-    axs['nim_gen_2'].set_title("Generated texture 2")
+    axs['im_uni'].imshow(textures[2].matrix, origin='lower')
+    axs['im_uni'].set_title("Generated texture 2")
 
     plt.show()
