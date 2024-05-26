@@ -50,6 +50,7 @@ class ObjectAnalysis:
         props = self.calc_basic_props(labels, self.properties)
         props = self.calc_additional_props(props)
         props = pd.DataFrame(props)
+
         return props
 
     def calc_basic_props(self, labels, props_list, extra_props=None,
