@@ -1,6 +1,7 @@
 import warnings
 import numpy as np
 from scipy import stats
+from sklearn.covariance import EmpiricalCovariance, MinCovDet
 from .polar_plots import PolarPlots
 
 
@@ -32,37 +33,33 @@ class DistributionEllipse:
 class DistributionEllipseBuilder:
     def __init__(self):
         self.dist_ellipse = DistributionEllipse()
+        self.cov_estimator = MinCovDet()
 
-    def build(self, objects_props, n_std=2., ellipse_type='error',
-              min_samples=5):
+    def build(self, r, theta, n_std=2., ellipse_type='error', min_points=5):
         """Build a distribution ellipse from objects properties.
 
         Parameters
         ----------
-        objects_props : ObjectsProperties
-            Objects properties.
+        r : np.ndarray
+            Radial coordinates.
+        theta : np.ndarray
+            Angular coordinates.
         n_std : float, optional
             Number of standard deviations.
         ellipse_type : str, optional
             Type of the ellipse ('error' or 'confidence').
+        min_points : int, optional
+            Minimum number of points to build the ellipse.
         """
-        r = np.concatenate((objects_props['axis_ratio'].values,
-                            objects_props['axis_ratio'].values))
-        theta = np.concatenate((objects_props['orientation'].values,
-                                np.pi + objects_props['orientation'].values))
-
-        if len(r) < 2 * min_samples:
-            warnings.warn('Not enough samples to build the distribution ellipse.')
+        if len(r) < 2 * min_points:
+            warnings.warn('Not enough points to build the distribution ellipse.')
 
             self.dist_ellipse = DistributionEllipse()
-            self.dist_ellipse.type_name = ellipse_type
-            self.dist_ellipse.width = np.nan
-            self.dist_ellipse.height = np.nan
-            self.dist_ellipse.orientation = np.nan
             return self.dist_ellipse
 
         x, y = PolarPlots.polar_to_cartesian(r, theta)
-        cov = self.covariance(x, y)
+        X = np.array([x, y]).T
+        cov = self.cov_estimator.fit(X).covariance_
         eig_vals, eig_vec = self.sorted_eigs(cov)
 
         if ellipse_type.lower() == 'error':

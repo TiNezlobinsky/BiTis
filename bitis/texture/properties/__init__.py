@@ -1,3 +1,3 @@
 from .pattern_properties_builder import PatternPropertiesBuilder
 from .distribution_ellipse import DistributionEllipseBuilder
-from .polar_plots import PolarPlots
+from .polar_plots import PolarPlots, PointDensity

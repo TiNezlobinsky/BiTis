@@ -8,4 +8,3 @@ class ObjectTexture(Texture):
         """
         ObjectTexture.__init__(self)
         self.objects = []
-

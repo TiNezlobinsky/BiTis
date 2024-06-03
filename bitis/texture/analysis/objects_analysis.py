@@ -21,7 +21,7 @@ class ObjectAnalysis:
 
     def __init__(self, properties=['label', 'area', 'centroid', 'solidity',
                                    'major_axis_length', 'minor_axis_length',
-                                   'orientation', 'perimeter_crofton']):
+                                   'orientation', 'perimeter']):
         self.properties = properties
 
     def build_props(self, tex, area_min=5, connectivity=1, clear_border=False):
@@ -61,7 +61,7 @@ class ObjectAnalysis:
         return props
 
     def calc_additional_props(self, props):
-        props['complexity'] = (props['perimeter_crofton'] ** 2
+        props['complexity'] = (props['perimeter'] ** 2
                                / (4 * np.pi * props['area']))
 
         props['major_axis_length'] = np.where(props['major_axis_length'] >= 1,

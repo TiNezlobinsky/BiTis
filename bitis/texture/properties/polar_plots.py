@@ -115,8 +115,6 @@ class PolarPlots:
             tuple: A tuple containing the radius, theta (angle) in radians,
                 and density.
         """
-        r = np.concatenate((r, r))
-        theta = np.concatenate((theta, theta + np.pi))
         x, y = PolarPlots.polar_to_cartesian(r, theta)
         density = PointDensity.gaussian_kde(x, y)
         return r, theta, density

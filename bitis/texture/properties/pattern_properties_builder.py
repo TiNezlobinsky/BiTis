@@ -46,15 +46,21 @@ class PatternPropertiesBuilder(PropertiesBuilder):
         self.pattern_props = pd.DataFrame()
         self.pattern_props['density'] = [density]
         self.pattern_props['elongation'] = [elongation]
-        self.pattern_props['orientation'] = [anisotropy]
+        self.pattern_props['orientation'] = [orientation]
         self.pattern_props['compactness'] = [compactness]
-        self.pattern_props['structural_anisotropy'] = [orientation]
+        self.pattern_props['structural_anisotropy'] = [anisotropy]
         self.pattern_props['complexity'] = [complexity]
         return self.pattern_props
 
     def calc_structural_anisotropy(self, props, n_std=2):
         props = props[props['area'] > self.area_min]
-        dist_ellipse = DistributionEllipseBuilder().build(props, n_std=n_std)
+        r = props['axis_ratio'].values
+        theta = props['orientation'].values
+
+        r = np.concatenate([r, r])
+        theta = np.concatenate([theta, theta + np.pi])
+
+        dist_ellipse = DistributionEllipseBuilder().build(r, theta, n_std=n_std)
         return dist_ellipse.anisotropy, dist_ellipse.orientation
 
     def calc_complexity(self, props):
@@ -67,8 +73,7 @@ class PatternPropertiesBuilder(PropertiesBuilder):
         Returns:
             float: The complexity of objects in the texture.
         """
-        quant = np.quantile(props['area'].values, self.area_quantile)
-        props = props[props['area'] > quant]
+        props = props[props['area'] > self.area_min]
         return np.sum(props['complexity'])
 
     def calc_solidity(self, props):
@@ -107,7 +112,8 @@ class PatternPropertiesBuilder(PropertiesBuilder):
         Returns:
             float: The elongation of objects in the texture.
         """
-        return np.mean(props['major_axis_length'] / props['minor_axis_length'])
+        props = props[props['area'] > self.area_min]
+        return np.median(props['axis_ratio'])
 
     def calc_compactness(self, tex, props):
         """

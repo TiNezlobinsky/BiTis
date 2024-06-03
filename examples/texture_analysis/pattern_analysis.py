@@ -3,13 +3,15 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy import ndimage
+from sklearn.covariance import EmpiricalCovariance
 from skimage import measure, morphology, segmentation
 
 from bitis.texture.texture import Texture
 from bitis.texture.properties import (
     PatternPropertiesBuilder,
     DistributionEllipseBuilder,
-    PolarPlots
+    PolarPlots,
+    PointDensity
 )
 
 
@@ -26,12 +28,19 @@ def swap_axis(angle):
 
 def draw_anisotropy(ax, objects_props, n_std=2):
     objects_props = objects_props[objects_props['area'] >= 5]
+    r = objects_props['axis_ratio'].values
+    theta = objects_props['orientation'].values
+
+    r = np.concatenate([r, r])
+    theta = np.concatenate([theta, theta + np.pi])
+
+    theta = swap_axis(theta)
+
     dist_ellipse_builder = DistributionEllipseBuilder()
-    dist_ellipse = dist_ellipse_builder.build(objects_props)
-    full_theta = swap_axis(dist_ellipse.full_theta)
-    orientation = swap_axis(dist_ellipse.orientation)
-    r, theta, d = PolarPlots.sort_by_density(objects_props['axis_ratio'],
-                                             swap_axis(objects_props['orientation']))
+    dist_ellipse = dist_ellipse_builder.build(r, theta, n_std=n_std)
+    full_theta = dist_ellipse.full_theta
+    orientation = dist_ellipse.orientation
+    r, theta, d = PolarPlots.sort_by_density(r, theta)
 
     ax.scatter(theta, r, c=d, s=30, alpha=1, cmap='viridis')
     ax.plot(full_theta, dist_ellipse.full_radius, color='red')
@@ -42,10 +51,36 @@ def draw_anisotropy(ax, objects_props, n_std=2):
               0.5 * dist_ellipse.height,
               angles='xy', scale_units='xy', scale=1, color='red')
 
+    dist_ellipse_builder = DistributionEllipseBuilder()
+    dist_ellipse_builder.cov_estimator = EmpiricalCovariance()
+    dist_ellipse = dist_ellipse_builder.build(r, theta, n_std=n_std)
+    # full_theta = swap_axis(dist_ellipse.full_theta)
+    # orientation = swap_axis(dist_ellipse.orientation)
+    ax.plot(full_theta, dist_ellipse.full_radius, color='blue')
+
+
+def draw_complexity(ax, objects_props):
+
+    quant = np.quantile(objects_props['area'].values, 0.95)
+    props = objects_props[objects_props['area'] > 0]
+    solidity = props['area'].values
+    complexity = props['complexity'].values
+
+    d = props['area'].values > quant
+
+    # solidity, complexity, d = PointDensity.sort_by_density(solidity, complexity)
+
+    ax.scatter(solidity, complexity, c=d, 
+               cmap='viridis', s=30, alpha=1)
+    ax.set_xlabel('Solidity')
+    ax.set_ylabel('Complexity')
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+
 
 path = Path(__file__).parents[2].joinpath('data')
 
-for i in range(1, 10):
+for i in range(1, 10, 2):
     im = plt.imread(path.joinpath('original_texs', f'or_tex_{i}.png'))
     nim = np.where(rgb2gray(im) > 0.5, 1, 2)
 
@@ -60,7 +95,7 @@ for i in range(1, 10):
 
     for im in [nim, nim_gen, nim_uni]:
         # im = ErosionSegmentation.segment(im == 2)
-        pattern_builder = PatternPropertiesBuilder()
+        pattern_builder = PatternPropertiesBuilder(area_quantile=0.95)
         pattern_properties = pattern_builder.build(im == 2)
         pattern_props.append(pattern_properties)
 
@@ -73,7 +108,8 @@ for i in range(1, 10):
     print(pd.concat(pattern_props))
 
     fig, axs = plt.subplot_mosaic([['im_or', 'im_gen', 'im_uni'],
-                                   ['plot', 'plot_gen', 'plot_uni']],
+                                   ['plot', 'plot_gen', 'plot_uni'],
+                                   ['cmpl', 'cmpl_gen', 'cmpl_uni']],
                                   per_subplot_kw={('plot', 'plot_gen',
                                                    'plot_uni'): {'projection': 'polar'}})
 
@@ -89,9 +125,18 @@ for i in range(1, 10):
     axs['plot_uni'].sharex(axs['plot_gen'])
     axs['plot_uni'].sharey(axs['plot_gen'])
 
+    axs['cmpl'].sharex(axs['cmpl_gen'])
+    axs['cmpl'].sharey(axs['cmpl_gen'])
+    axs['cmpl_uni'].sharex(axs['cmpl_gen'])
+    axs['cmpl_uni'].sharey(axs['cmpl_gen'])
+
     draw_anisotropy(axs['plot'], textures[0].properties["object_props"])
     draw_anisotropy(axs['plot_gen'], textures[1].properties["object_props"])
     draw_anisotropy(axs['plot_uni'], textures[2].properties["object_props"])
+
+    draw_complexity(axs['cmpl'], textures[0].properties["object_props"])
+    draw_complexity(axs['cmpl_gen'], textures[1].properties["object_props"])
+    draw_complexity(axs['cmpl_uni'], textures[2].properties["object_props"])
 
     axs['im_or'].imshow(textures[0].matrix, origin='lower')
     axs['im_or'].set_title('Original texture')
@@ -100,6 +145,6 @@ for i in range(1, 10):
     axs['im_gen'].set_title("Generated texture")
 
     axs['im_uni'].imshow(textures[2].matrix, origin='lower')
-    axs['im_uni'].set_title("Generated texture 2")
+    axs['im_uni'].set_title("Uniform generator")
 
     plt.show()
