@@ -7,13 +7,16 @@ from .polar_plots import PolarPlots
 
 class DistributionEllipse:
     def __init__(self):
-        self.type_name = None
-        self.width = None
-        self.height = None
-        self.orientation = None
+        self.type_name = ''
+        self.width = np.nan
+        self.height = np.nan
+        self.orientation = np.nan
 
     @property
     def anisotropy(self):
+        if self.width is np.nan or self.height is np.nan:
+            return np.nan
+
         return self.width / self.height
 
     @property
