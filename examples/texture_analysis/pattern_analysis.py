@@ -59,23 +59,60 @@ def draw_anisotropy(ax, objects_props, n_std=2):
     ax.plot(full_theta, dist_ellipse.full_radius, color='blue')
 
 
-def draw_complexity(ax, objects_props):
+def calc_ccdf(df):
+    count = np.bincount(df['area'].values)
+    area_bins = np.arange(1 + df['area'].max())
 
-    quant = np.quantile(objects_props['area'].values, 0.95)
-    props = objects_props[objects_props['area'] > 0]
-    solidity = props['area'].values
-    complexity = props['complexity'].values
+    area_bins = area_bins[1:]
+    count = count[1:]
+    ccdf = np.cumsum(count[::-1])[::-1] / np.sum(count)
+    return area_bins, ccdf
 
-    d = props['area'].values > quant
 
-    # solidity, complexity, d = PointDensity.sort_by_density(solidity, complexity)
+def calc_area_cdf(df):
+    count = np.bincount(df['area'].values)
+    area_bins = np.arange(1 + df['area'].max())
 
-    ax.scatter(solidity, complexity, c=d, 
-               cmap='viridis', s=30, alpha=1)
-    ax.set_xlabel('Solidity')
-    ax.set_ylabel('Complexity')
+    area_bins = area_bins[1:]
+    count = count[1:]
+    area = area_bins * count
+
+    cdf = np.cumsum(area) / np.sum(area)
+    return area_bins, cdf
+
+
+def draw_area_cdf(ax, objects_props, label=''):
+    area_bins, cdf = calc_area_cdf(objects_props)
+    ax.plot(area_bins, cdf, label=label)
+    ax.set_xlabel('Size')
+    ax.set_ylabel('Fibrotic Tissue')
+    ax.set_xscale('log')
+
+
+def draw_ccdf(ax, objects_props, label=''):
+    area_bins, ccdf = calc_ccdf(objects_props)
+    ax.plot(area_bins, ccdf, label=label)
+    ax.set_xlabel('Size')
+    ax.set_ylabel('CCDF')
     ax.set_yscale('log')
     ax.set_xscale('log')
+
+
+def draw_perimeter_cdf(ax, objects_props, label=''):
+    count = np.bincount(objects_props['area'].values,
+                        weights=objects_props['perimeter'].values)
+    area_bins = np.arange(1 + objects_props['area'].max())
+
+    area_bins = area_bins[1:]
+    count = count[1:]
+
+    cdf = np.cumsum(count)
+    
+    ax.plot(area_bins, cdf, label=label)
+    ax.set_xlabel('Size')
+    ax.set_ylabel('Perimeter')
+    ax.set_xscale('log')
+    ax.set_yscale('log')
 
 
 path = Path(__file__).parents[2].joinpath('data')
@@ -125,18 +162,49 @@ for i in range(1, 10, 2):
     axs['plot_uni'].sharex(axs['plot_gen'])
     axs['plot_uni'].sharey(axs['plot_gen'])
 
-    axs['cmpl'].sharex(axs['cmpl_gen'])
-    axs['cmpl'].sharey(axs['cmpl_gen'])
-    axs['cmpl_uni'].sharex(axs['cmpl_gen'])
-    axs['cmpl_uni'].sharey(axs['cmpl_gen'])
+    # axs['cmpl'].sharex(axs['cmpl_gen'])
+    # axs['cmpl'].sharey(axs['cmpl_gen'])
+    # axs['cmpl_uni'].sharex(axs['cmpl_gen'])
+    # axs['cmpl_uni'].sharey(axs['cmpl_gen'])
 
     draw_anisotropy(axs['plot'], textures[0].properties["object_props"])
     draw_anisotropy(axs['plot_gen'], textures[1].properties["object_props"])
     draw_anisotropy(axs['plot_uni'], textures[2].properties["object_props"])
 
-    draw_complexity(axs['cmpl'], textures[0].properties["object_props"])
-    draw_complexity(axs['cmpl_gen'], textures[1].properties["object_props"])
-    draw_complexity(axs['cmpl_uni'], textures[2].properties["object_props"])
+    draw_ccdf(axs['cmpl_gen'],
+              textures[0].properties["object_props"],
+              label='Original')
+    draw_ccdf(axs['cmpl_gen'],
+              textures[1].properties["object_props"],
+              label='DS Generator')
+    draw_ccdf(axs['cmpl_gen'],
+              textures[2].properties["object_props"],
+              label='Uniform Generator')
+
+    draw_area_cdf(axs['cmpl'],
+                  textures[0].properties["object_props"],
+                  label='Original')
+    draw_area_cdf(axs['cmpl'],
+                  textures[1].properties["object_props"],
+                  label='DS Generator')
+    draw_area_cdf(axs['cmpl'],
+                  textures[2].properties["object_props"],
+                  label='Uniform Generator')
+
+    draw_perimeter_cdf(axs['cmpl_uni'],
+                       textures[0].properties["object_props"],
+                       label='Original')
+    draw_perimeter_cdf(axs['cmpl_uni'],
+                       textures[1].properties["object_props"],
+                       label='DS Generator')
+    draw_perimeter_cdf(axs['cmpl_uni'],
+                       textures[2].properties["object_props"],
+                       label='Uniform Generator')
+
+    axs['cmpl_uni'].set_xscale('log')
+    axs['cmpl_uni'].set_yscale('log')
+
+    axs['cmpl_gen'].legend()
 
     axs['im_or'].imshow(textures[0].matrix, origin='lower')
     axs['im_or'].set_title('Original texture')
