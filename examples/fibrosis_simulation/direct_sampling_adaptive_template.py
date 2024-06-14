@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from joblib import Parallel, delayed
+from tqdm import tqdm
 
 from bitis.tissue_models.direct_sampling.simulations import TextureAdaptiveSimulation
 from image_parser import ImageParser
 
 
 def generate_image(i, j):
-    simulation_image = np.zeros((120, 120))
+    simulation_image = np.zeros((200, 200))
     simulation = TextureAdaptiveSimulation(training_image,
                                            simulation_image,
                                            max_size=20,
@@ -17,20 +18,20 @@ def generate_image(i, j):
                                            min_distance=1)
     simulation.run()
     filename = f'gen_tex_{i}_{j}.png'
-    ImageParser.write_png(simulation_image[10:110, 10:110],
-                          path.joinpath('simulated_100', filename))
+    ImageParser.write_png(simulation_image,
+                          path.joinpath('simulated_2_1', filename))
 
 
 path = Path(__file__).parents[2].joinpath('data')
 
-for i in range(11, 12):
+for i in range(2, 3):
     filename = f'or_tex_{i}.png'
-    training_image = ImageParser.read_png(path.joinpath('training',
+    training_image = ImageParser.read_png(path.joinpath('original_texs',
                                                         filename))
     training_image[training_image == 0] = 1
-    training_image = training_image[:100, :100]
+    training_image = training_image
 
-    Parallel(n_jobs=4)(delayed(generate_image)(i, j) for j in range(100))
+    Parallel(n_jobs=8)(delayed(generate_image)(i, j) for j in tqdm(range(16, 32)))
 
 # template_sizes = np.array(simulation.template_sizes)
 

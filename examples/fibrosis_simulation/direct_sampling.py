@@ -15,7 +15,7 @@ def rgb2gray(rgb):
 
 
 # simulation_size = np.array([100, 100])
-template_size   = np.array([13, 13])
+template_size = np.array([13, 13])
 
 im = plt.imread(Path(__file__).parents[2].joinpath('data', 'original_texs',
                                                    'or_tex_2.png'))

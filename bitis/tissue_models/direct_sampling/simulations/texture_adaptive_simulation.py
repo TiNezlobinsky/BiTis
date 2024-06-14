@@ -27,7 +27,7 @@ class TextureAdaptiveSimulation:
 
     def run(self):
         coords = self.path_builder.build()
-        for coord in tqdm(coords):
+        for coord in coords:
             template = self.template_builder.build(*coord)
             closest_pixel = self.distance_builder.build(template)
             self.template_builder.update_image(*coord, closest_pixel)
