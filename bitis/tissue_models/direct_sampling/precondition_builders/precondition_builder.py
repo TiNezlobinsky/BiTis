@@ -10,5 +10,3 @@ class PreconditionBuilder:
 
     def build(self):
         pass
-
-    
