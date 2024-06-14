@@ -60,7 +60,7 @@ def draw_anisotropy(ax, objects_props, n_std=2):
 
 
 def calc_ccdf(df):
-    count = np.bincount(df['area'].values)
+    count = np.bincount(df['area'].values.astype(int))
     area_bins = np.arange(1 + df['area'].max())
 
     area_bins = area_bins[1:]
@@ -70,7 +70,7 @@ def calc_ccdf(df):
 
 
 def calc_area_cdf(df):
-    count = np.bincount(df['area'].values)
+    count = np.bincount(df['area'].values.astype(int))
     area_bins = np.arange(1 + df['area'].max())
 
     area_bins = area_bins[1:]
@@ -117,14 +117,14 @@ def draw_perimeter_cdf(ax, objects_props, label=''):
 
 path = Path(__file__).parents[2].joinpath('data')
 
-for i in range(1, 10, 2):
-    im = plt.imread(path.joinpath('original_texs', f'or_tex_{i}.png'))
-    nim = np.where(rgb2gray(im) > 0.5, 1, 2)
+files = path.joinpath('original').glob('*.npy')
+files = [f.name for f in files]
 
-    nim_gen = np.load(path.joinpath('sim_dir_2', f'or_tex_{i}.npy'))
+for file_name in files:
+    nim_gen = np.load(path.joinpath('generated', file_name))
+    nim = np.load(path.joinpath('original', file_name))
 
     nim_uni = np.random.random(nim_gen.shape) < (np.sum(nim == 2) / nim.size)
-
     nim_uni = nim_uni.astype(int) + 1
 
     textures = []
@@ -191,18 +191,18 @@ for i in range(1, 10, 2):
                   textures[2].properties["object_props"],
                   label='Uniform Generator')
 
-    draw_perimeter_cdf(axs['cmpl_uni'],
-                       textures[0].properties["object_props"],
-                       label='Original')
-    draw_perimeter_cdf(axs['cmpl_uni'],
-                       textures[1].properties["object_props"],
-                       label='DS Generator')
-    draw_perimeter_cdf(axs['cmpl_uni'],
-                       textures[2].properties["object_props"],
-                       label='Uniform Generator')
+    # draw_perimeter_cdf(axs['cmpl_uni'],
+    #                    textures[0].properties["object_props"],
+    #                    label='Original')
+    # draw_perimeter_cdf(axs['cmpl_uni'],
+    #                    textures[1].properties["object_props"],
+    #                    label='DS Generator')
+    # draw_perimeter_cdf(axs['cmpl_uni'],
+    #                    textures[2].properties["object_props"],
+    #                    label='Uniform Generator')
 
-    axs['cmpl_uni'].set_xscale('log')
-    axs['cmpl_uni'].set_yscale('log')
+    # axs['cmpl_uni'].set_xscale('log')
+    # axs['cmpl_uni'].set_yscale('log')
 
     axs['cmpl_gen'].legend()
 

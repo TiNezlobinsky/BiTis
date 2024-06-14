@@ -38,4 +38,3 @@ class TrainingDataBuilder:
                         events.append(event)
 
         return np.random.permutation(events)
-        
