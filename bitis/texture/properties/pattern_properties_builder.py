@@ -100,7 +100,7 @@ class PatternPropertiesBuilder(PropertiesBuilder):
         Returns:
             float: The density of objects in the texture.
         """
-        return np.sum(tex > 0) / tex.size
+        return np.mean(tex > 0)
 
     def calc_elongation(self, props):
         """

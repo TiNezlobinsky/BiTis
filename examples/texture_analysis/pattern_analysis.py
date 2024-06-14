@@ -51,12 +51,12 @@ def draw_anisotropy(ax, objects_props, n_std=2):
               0.5 * dist_ellipse.height,
               angles='xy', scale_units='xy', scale=1, color='red')
 
-    dist_ellipse_builder = DistributionEllipseBuilder()
-    dist_ellipse_builder.cov_estimator = EmpiricalCovariance()
-    dist_ellipse = dist_ellipse_builder.build(r, theta, n_std=n_std)
-    # full_theta = swap_axis(dist_ellipse.full_theta)
-    # orientation = swap_axis(dist_ellipse.orientation)
-    ax.plot(full_theta, dist_ellipse.full_radius, color='blue')
+    # dist_ellipse_builder = DistributionEllipseBuilder()
+    # dist_ellipse_builder.cov_estimator = EmpiricalCovariance()
+    # dist_ellipse = dist_ellipse_builder.build(r, theta, n_std=n_std)
+    # # full_theta = swap_axis(dist_ellipse.full_theta)
+    # # orientation = swap_axis(dist_ellipse.orientation)
+    # ax.plot(full_theta, dist_ellipse.full_radius, color='blue')
 
 
 def calc_ccdf(df):
@@ -117,11 +117,15 @@ def draw_perimeter_cdf(ax, objects_props, label=''):
 
 path = Path(__file__).parents[2].joinpath('data')
 
-for i in range(1, 10, 2):
-    im = plt.imread(path.joinpath('original_texs', f'or_tex_{i}.png'))
+for i in range(0, 10, 2):
+    j = 11
+    im = plt.imread(path.joinpath('training', f'or_tex_{j}.png'))
     nim = np.where(rgb2gray(im) > 0.5, 1, 2)
+    nim = nim[:100, :100]
 
-    nim_gen = np.load(path.joinpath('sim_dir_2', f'or_tex_{i}.npy'))
+    im = plt.imread(path.joinpath('simulated_100_20_30',
+                                  f'gen_tex_{j}_{i}.png'))
+    nim_gen = np.where(rgb2gray(im) > 0.5, 1, 2)
 
     nim_uni = np.random.random(nim_gen.shape) < (np.sum(nim == 2) / nim.size)
 
