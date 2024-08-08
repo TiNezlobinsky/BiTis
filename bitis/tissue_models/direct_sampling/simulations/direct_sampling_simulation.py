@@ -38,7 +38,7 @@ class DirectSamplingSimulation:
         for coord in coords:
             i, j = coord
             template = self.build_template(*coord)
-            closest_pixel = self.distance_builder.build(template)
+            closest_pixel = self.distance_builder.build(template, i, j)
             self.output_image[i, j] = closest_pixel
 
         return self.output_image

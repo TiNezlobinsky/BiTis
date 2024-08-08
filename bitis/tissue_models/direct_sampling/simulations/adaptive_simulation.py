@@ -7,15 +7,11 @@ from bitis.tissue_models.direct_sampling.training_data_builders import DistanceB
 from .texture_adaptive_template_builder import TextureAdaptiveTemplateBuilder
 from .direct_sampling_simulation import DirectSamplingSimulation
 
-class AdaptiveSamplingSimulation(DirectSamplingSimulation):
+
+class AdaptiveSimulation(DirectSamplingSimulation):
     """
     Attributes:
-        image (numpy.ndarray): The training image.
-        out_image (numpy.ndarray): The output image.
-        max_size (int): The maximum number exiting neighbours in template.
-        max_distance (int): The maximum distance for neighbours search.
-        distance_threshold (float): The distance threshold for the distance builder.
-        template_sizes (list): The list of template sizes.
+
     """
     def __init__(self, input_image, training_image, path_builder, distance_builder, max_size=20, max_distance=30,
                  min_distance=3):
@@ -93,7 +89,7 @@ class AdaptiveSamplingSimulation(DirectSamplingSimulation):
         for coord in coords:
             i, j = coord
             template = self.build_template(i, j)
-            closest_pixel = self.distance_builder.build(template)
+            closest_pixel = self.distance_builder.build(template, i, j)
             self.output_image[i, j] = closest_pixel
             self.template_sizes.append(template.shape)
         return self.output_image
