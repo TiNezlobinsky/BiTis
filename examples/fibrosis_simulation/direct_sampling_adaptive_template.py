@@ -1,51 +1,53 @@
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
-
-from joblib import Parallel, delayed
-from tqdm import tqdm
-
-from bitis.tissue_models.direct_sampling.simulations import TextureAdaptiveSimulation
-from image_parser import ImageParser
+from skimage import morphology
 
 
-def generate_image(i, j):
-    simulation_image = np.zeros((200, 200))
-    simulation = TextureAdaptiveSimulation(training_image,
-                                           simulation_image,
-                                           max_size=20,
-                                           max_distance=30,
-                                           min_distance=1)
-    simulation.run()
-    filename = f'gen_tex_{i}_{j}.png'
-    ImageParser.write_png(simulation_image,
-                          path.joinpath('simulated_2_1', filename))
+from bitis.tissue_models.direct_sampling.precondition_builders.texture_precondition_builder import TexturePreconditionBuilder
+from bitis.tissue_models.direct_sampling.simulation_path_builder.simulation_random_path_builder import SimulationRandomPathBuilder
+from bitis.tissue_models.direct_sampling.simulations.adaptive_simulation import AdaptiveSimulation
+from bitis.tissue_models.direct_sampling.training_data_builders.distance_builder import DistanceBuilder
 
 
-path = Path(__file__).parents[2].joinpath('data')
+def rgb2gray(rgb):
+    return np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
 
-for i in range(2, 3):
-    filename = f'or_tex_{i}.png'
-    training_image = ImageParser.read_png(path.joinpath('original_texs',
-                                                        filename))
-    training_image[training_image == 0] = 1
-    training_image = training_image
 
-    Parallel(n_jobs=8)(delayed(generate_image)(i, j) for j in tqdm(range(16, 32)))
+# simulation_size = np.array([100, 100])
+template_size = np.array([13, 13])
 
-# template_sizes = np.array(simulation.template_sizes)
+im = plt.imread(Path(__file__).parents[2].joinpath('/Users/timurnezlobinskij/FrozenScience/Project_fibrosis/FibrosisAnalysis/data_gen/original_texs',
+                                                   'or_tex_2.png'))
+gim = rgb2gray(im)
+nim = np.where(gim > 0.5, 1, 2)
 
-# plt.figure()
-# plt.scatter(template_sizes[:, 0], template_sizes[:, 1],
-#             c=np.arange(len(template_sizes)))
-# plt.show()
+mask = morphology.remove_small_objects(nim == 2, min_size=5, connectivity=1)
+nim = np.zeros_like(nim)
+nim[mask] = 2
+nim[~mask] = 1
 
-# fig, axs = plt.subplots(1, 2, figsize=(8, 3), width_ratios=[1, 1.5])
-# axs[0].imshow(training_image, origin='lower', vmin=0, vmax=2)
-# axs[0].set_title('Training Image')
-# axs[0].axis('off')
+simulation_size = nim.shape
 
-# axs[1].imshow(simulation_image[25:125, 25:125], origin='lower', vmin=0, vmax=2)
-# axs[1].set_title('Simulated Image')
-# axs[1].axis('off')
-# plt.show()
+texture_precondition_builder = TexturePreconditionBuilder(simulation_size)
+precondition_matrix = np.zeros(simulation_size)
+
+simulation_path_builder = SimulationRandomPathBuilder(template_size, simulation_size)
+
+mask = np.random.random(nim.shape) < 0.01
+precondition_matrix[mask] = nim[mask]
+
+simulation = AdaptiveSimulation(precondition_matrix, nim, simulation_path_builder, DistanceBuilder(nim))
+
+simulated_tex = simulation.run()
+
+mask = morphology.remove_small_objects(simulated_tex == 2, min_size=5, connectivity=1)
+simulated_tex = np.zeros_like(simulated_tex)
+simulated_tex[mask] = 2
+simulated_tex[~mask] = 1
+
+fig, ax = plt.subplots(1, 2)
+
+ax[0].imshow(nim)
+ax[1].imshow(simulated_tex)
+plt.show()

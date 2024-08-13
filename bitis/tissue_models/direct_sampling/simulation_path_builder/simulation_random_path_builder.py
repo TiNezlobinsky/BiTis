@@ -4,10 +4,12 @@ from bitis.tissue_models.direct_sampling.simulation_path_builder.simulation_path
 
 
 class SimulationRandomPathBuilder(SimulationPathBuilder):
-    def __init__(self):
+    def __init__(self, template_size=None, simulation_size=None):
         SimulationPathBuilder.__init__(self)
+        self.template_size = template_size
+        self.simulation_size = simulation_size
 
-    def build(self, template_size, simulation_size):
+    def build(self):
         """
         Builds a random path for simulation based on the given template size and simulation size.
 
@@ -18,19 +20,14 @@ class SimulationRandomPathBuilder(SimulationPathBuilder):
         Returns:
             numpy.ndarray: A random permutation of coordinates for the simulation path.
         """
-        pad_i = template_size[0] // 2
-        pad_j = template_size[1] // 2
-        pad_k = None
-        if len(template_size) > 2:
-            pad_k = template_size[2] // 2
-
-        ci = np.arange(pad_i, (simulation_size[0] + 2*pad_i) - pad_i)
-        cj = np.arange(pad_j, (simulation_size[1] + 2*pad_j) - pad_j)
+        ci = np.arange(self.simulation_size[0])
+        cj = np.arange(self.simulation_size[1])
 
         ck = None
-        if pad_k:
-            ck = np.arange(pad_k, (simulation_size[2] + template_size[2]) - pad_k)
+        if len(self.template_size) > 2:
+            ck = np.arange(self.simulation_size[2])
         Ci, Cj = np.meshgrid(ci, cj)
+        
         Ck = None
         if ck:
             Ci, Cj, Ck = np.meshgrid(ci, cj, ck)

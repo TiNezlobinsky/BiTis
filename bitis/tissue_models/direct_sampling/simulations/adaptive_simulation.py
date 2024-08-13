@@ -59,10 +59,10 @@ class AdaptiveSimulation(DirectSamplingSimulation):
             j (int): The y coordinate of the pixel.
         """
         coord = np.array([i, j])
-        coords = np.argwhere(self.image > 0)
+        coords = np.argwhere(self.input_image > 0)
 
         if len(coords) < self.max_size:
-            return self.build_defaut_template(self.image, *coord,
+            return self.build_defaut_template(self.input_image, *coord,
                                               self.max_distance)
         #  Find the nearest max_size already labeled pixels
         tree = spatial.KDTree(coords)
@@ -71,7 +71,7 @@ class AdaptiveSimulation(DirectSamplingSimulation):
         ind = ind[d < np.inf]
 
         if len(ind) < self.max_size:
-            return self.build_defaut_template(self.image, *coord,
+            return self.build_defaut_template(self.input_image, *coord,
                                               self.max_distance)
 
         coords = coords[ind]
@@ -80,9 +80,9 @@ class AdaptiveSimulation(DirectSamplingSimulation):
 
         min_distance = int(2 * self.min_distance)
         if max(i_max - i_min, j_max - j_min) <= min_distance:
-            return self.build_defaut_template(self.image, *coord,
+            return self.build_defaut_template(self.input_image, *coord,
                                               self.min_distance)
-        return self.image[i_min:i_max, j_min:j_max]  
+        return self.input_image[i_min:i_max, j_min:j_max]  
 
     def run(self):
         coords = self.path_builder.build()
@@ -90,6 +90,6 @@ class AdaptiveSimulation(DirectSamplingSimulation):
             i, j = coord
             template = self.build_template(i, j)
             closest_pixel = self.distance_builder.build(template, i, j)
-            self.output_image[i, j] = closest_pixel
+            self.input_image[i, j] = closest_pixel
             self.template_sizes.append(template.shape)
-        return self.output_image
+        return self.input_image
