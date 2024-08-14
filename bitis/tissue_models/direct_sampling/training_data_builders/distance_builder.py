@@ -1,6 +1,8 @@
 import numpy as np
 from scipy import signal
 
+from .adaptive_training_data_builder import AdaptiveTrainingDataBuilder
+
 
 class DistanceBuilder:
     """
@@ -20,16 +22,16 @@ class DistanceBuilder:
             image (numpy.ndarray): The training image.
             template (numpy.ndarray): The template.
         """
-        dist_fibr = signal.correlate((image == 2).astype(float),
-                                     (template == 2).astype(float),
+        dist_fibr = signal.correlate((image == 2).astype(np.float32),
+                                     (template == 2).astype(np.float32),
                                      mode='valid', method='fft')
-        dist_myo = signal.correlate((image == 1).astype(float),
-                                    (template == 1).astype(float),
+        dist_myo = signal.correlate((image == 1).astype(np.float32),
+                                    (template == 1).astype(np.float32),
                                     mode='valid', method='fft')
         dist = dist_fibr + dist_myo
         return dist / (template > 0).sum()
 
-    def calc_min_distance_idx(self, template):
+    def calc_min_distance_idx(self, template, i_shift, j_shift):
         """Calculate the minimum distance index. If minimum distance is less
         than the distance threshold, return a random index.
 
@@ -51,12 +53,20 @@ class DistanceBuilder:
             return x, y
 
         i = np.random.choice(np.arange(len(coords)))
-        x, y = coords[i]
-        x += template.shape[0] // 2
-        y += template.shape[1] // 2
+        x_, y_ = coords[i]
+
+        x = x_ + i_shift
+        y = y_ + j_shift
         return x, y
 
-    def build(self, template):
+    def reset_image(self, i, j, image, tr_shape):
+        i_min, i_max, j_min, j_max = AdaptiveTrainingDataBuilder.build(
+            i, j, image.shape, tr_shape)
+
+        self.image = image[i_min: i_max, j_min: j_max]
+        return i_min, j_min
+
+    def build(self, template, i_shift, j_shift):
         """Calculate the minimum distance index and return the corresponding
         pixel value.
 
@@ -66,5 +76,11 @@ class DistanceBuilder:
         Returns:
             int: The pixel value.
         """
-        x, y = self.calc_min_distance_idx(template)
+        x, y = self.calc_min_distance_idx(template, i_shift, j_shift)
+
+        if x >= self.image.shape[0] or y >= self.image.shape[1]:
+            print('Error: x, y =', x, y)
+            print('Error: image shape =', self.image.shape)
+            print('Error: template shape =', template.shape)
+            print('Error: i_shift, j_shift =', i_shift, j_shift)
         return self.image[x, y]

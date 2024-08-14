@@ -2,35 +2,60 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-from joblib import Parallel, delayed
+import joblib
+import contextlib
+from tqdm import tqdm
 
 from bitis.tissue_models.direct_sampling.simulations import TextureAdaptiveSimulation
 from image_parser import ImageParser
 
 
 def generate_image(i, j):
-    simulation_image = np.zeros((120, 120))
-    simulation = TextureAdaptiveSimulation(training_image,
-                                           simulation_image,
-                                           max_size=20,
-                                           max_distance=30,
-                                           min_distance=1)
-    simulation.run()
-    filename = f'gen_tex_{i}_{j}.png'
-    ImageParser.write_png(simulation_image[10:110, 10:110],
-                          path.joinpath('simulated_100', filename))
-
-
-path = Path(__file__).parents[2].joinpath('data')
-
-for i in range(11, 12):
+    path = Path(__file__).parents[2].joinpath('data')
     filename = f'or_tex_{i}.png'
     training_image = ImageParser.read_png(path.joinpath('training',
                                                         filename))
     training_image[training_image == 0] = 1
     training_image = training_image[:100, :100]
 
-    Parallel(n_jobs=4)(delayed(generate_image)(i, j) for j in range(100))
+    simulation_image = np.zeros(training_image.shape)
+    simulation = TextureAdaptiveSimulation(training_image,
+                                           simulation_image,
+                                           max_size=20,
+                                           max_distance=30,
+                                           min_distance=1,
+                                           distance_threshold=0.0,
+                                           progress_bar=False)
+    simulation.run()
+    filename = f'gen_tex_{i}_{j}.png'
+
+    if not path.joinpath(f'simulated_{i}').exists():
+        path.joinpath(f'simulated_{i}').mkdir()
+
+    ImageParser.write_png(simulation_image,
+                          path.joinpath(f'simulated_{i}', filename))
+
+
+@contextlib.contextmanager
+def tqdm_joblib(tqdm_object):
+    """Context manager to patch joblib to report into tqdm progress bar given as argument"""
+    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
+        def __call__(self, *args, **kwargs):
+            tqdm_object.update(n=self.batch_size)
+            return super().__call__(*args, **kwargs)
+
+    old_batch_callback = joblib.parallel.BatchCompletionCallBack
+    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
+    try:
+        yield tqdm_object
+    finally:
+        joblib.parallel.BatchCompletionCallBack = old_batch_callback
+        tqdm_object.close()
+
+
+for i in [5]:
+    with tqdm_joblib(tqdm(desc="Generating images", total=100)) as progress_bar:
+        joblib.Parallel(n_jobs=4)(joblib.delayed(generate_image)(i, j) for j in range(100))
 
 # template_sizes = np.array(simulation.template_sizes)
 
