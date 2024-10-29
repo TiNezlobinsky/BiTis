@@ -60,7 +60,7 @@ def draw_anisotropy(ax, objects_props, n_std=2):
 
 
 def calc_ccdf(df):
-    count = np.bincount(df['area'].values)
+    count = np.bincount(df['area'].values.astype(int))
     area_bins = np.arange(1 + df['area'].max())
 
     area_bins = area_bins[1:]
@@ -70,7 +70,7 @@ def calc_ccdf(df):
 
 
 def calc_area_cdf(df):
-    count = np.bincount(df['area'].values)
+    count = np.bincount(df['area'].values.astype(int))
     area_bins = np.arange(1 + df['area'].max())
 
     area_bins = area_bins[1:]
@@ -128,7 +128,6 @@ for i in range(0, 10, 2):
     nim_gen = np.where(rgb2gray(im) > 0.5, 1, 2)
 
     nim_uni = np.random.random(nim_gen.shape) < (np.sum(nim == 2) / nim.size)
-
     nim_uni = nim_uni.astype(int) + 1
 
     textures = []
@@ -195,18 +194,18 @@ for i in range(0, 10, 2):
                   textures[2].properties["object_props"],
                   label='Uniform Generator')
 
-    draw_perimeter_cdf(axs['cmpl_uni'],
-                       textures[0].properties["object_props"],
-                       label='Original')
-    draw_perimeter_cdf(axs['cmpl_uni'],
-                       textures[1].properties["object_props"],
-                       label='DS Generator')
-    draw_perimeter_cdf(axs['cmpl_uni'],
-                       textures[2].properties["object_props"],
-                       label='Uniform Generator')
+    # draw_perimeter_cdf(axs['cmpl_uni'],
+    #                    textures[0].properties["object_props"],
+    #                    label='Original')
+    # draw_perimeter_cdf(axs['cmpl_uni'],
+    #                    textures[1].properties["object_props"],
+    #                    label='DS Generator')
+    # draw_perimeter_cdf(axs['cmpl_uni'],
+    #                    textures[2].properties["object_props"],
+    #                    label='Uniform Generator')
 
-    axs['cmpl_uni'].set_xscale('log')
-    axs['cmpl_uni'].set_yscale('log')
+    # axs['cmpl_uni'].set_xscale('log')
+    # axs['cmpl_uni'].set_yscale('log')
 
     axs['cmpl_gen'].legend()
 

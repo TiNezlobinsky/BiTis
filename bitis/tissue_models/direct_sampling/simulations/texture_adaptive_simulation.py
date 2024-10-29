@@ -30,6 +30,7 @@ class TextureAdaptiveSimulation:
 
     def run(self):
         coords = self.path_builder.build()
+<<<<<<< HEAD
         if self.progress_bar:
             coords = tqdm(coords)
 
@@ -37,6 +38,11 @@ class TextureAdaptiveSimulation:
             template, i_shift, j_shift = self.template_builder.build(*coord)
             closest_pixel = self.distance_builder.build(template, i_shift,
                                                         j_shift)
+=======
+        for coord in coords:
+            template = self.template_builder.build(*coord)
+            closest_pixel = self.distance_builder.build(template)
+>>>>>>> 9b45990efab06004cfe72fbc4714b439c9dce8fd
             self.template_builder.update_image(*coord, closest_pixel)
             self.template_sizes.append(template.shape)
         return self.template_builder.image
