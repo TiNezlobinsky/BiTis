@@ -33,7 +33,8 @@ class PatternPropertiesBuilder(PropertiesBuilder):
             PatternProperties: The pattern properties of the texture.
         """
         object_analysis = ObjectAnalysis()
-        self.object_props = object_analysis.build_props(texture, area_min=1,
+        self.object_props = object_analysis.build_props(texture,
+                                                        area_min=self.area_min,
                                                         connectivity=1,
                                                         clear_border=clear_border)
 
