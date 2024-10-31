@@ -21,6 +21,9 @@ class RandomPathIndexBuilder:
             numpy.ndarray: A random permutation of coordinates for
                 the simulation path.
         """
+        mask = np.zeros_likes(self.out_mask)
+        while np.all(mask == self.out_mask):
+            
         coords = np.argwhere(self.out_mask)
         coords = np.random.permutation(coords)
         return coords

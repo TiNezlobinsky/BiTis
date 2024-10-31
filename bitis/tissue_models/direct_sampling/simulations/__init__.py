@@ -1,1 +1,2 @@
 from .texture_adaptive_simulation import TextureAdaptiveSimulation
+from .texture_adaptive_training_simulation import TextureAdaptiveTrainingSimulation
