@@ -19,7 +19,7 @@ class RotatedDistanceBuilder:
         self.calc_rotations(image, angle_matrix)
 
     def calc_rotations(self, image, angle):
-        angles = list(np.unique(self.angles_matrix))
+        angles = list(np.unique(self.angle_matrix))
         for angle in angles:
             rotated_image = transform.rotate(image, angle, resize=True, preserve_range=True, order=0)
 
