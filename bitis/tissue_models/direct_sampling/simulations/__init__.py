@@ -1,1 +1,2 @@
-from .texture_adaptive_simulation import TextureAdaptiveSimulation
+from bitis.tissue_models.direct_sampling.simulations.adaptive_simulation import AdaptiveSimulation
+from bitis.tissue_models.direct_sampling.simulations.direct_sampling_simulation import DirectSamplingSimulation

@@ -6,7 +6,7 @@ class DirectSamplingSimulation:
         self.training_image   = training_image
         self.path_builder     = path_builder
         self.distance_builder = distance_builder
-        self.output_image     = None
+        self.output_image     = None  # not used
 
         self.template_size = template_size
 

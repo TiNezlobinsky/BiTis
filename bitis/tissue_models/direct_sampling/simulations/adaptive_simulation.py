@@ -2,9 +2,7 @@ import numpy as np
 from scipy import spatial
 from tqdm import tqdm
 
-from bitis.tissue_models.direct_sampling.simulation_path_builder import RandomPathIndexBuilder
-from bitis.tissue_models.direct_sampling.training_data_builders import DistanceBuilder
-from .texture_adaptive_template_builder import TextureAdaptiveTemplateBuilder
+
 from .direct_sampling_simulation import DirectSamplingSimulation
 
 
