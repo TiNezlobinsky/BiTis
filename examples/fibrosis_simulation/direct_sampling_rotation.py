@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from skimage import morphology
 
 
-from bitis.tissue_models.direct_sampling.precondition_builders.texture_precondition_builder import TexturePreconditionBuilder
 from bitis.tissue_models.direct_sampling.simulation_path_builder.simulation_random_path_builder import SimulationRandomPathBuilder
 from bitis.tissue_models.direct_sampling.simulations.adaptive_simulation import AdaptiveSimulation
 from bitis.tissue_models.direct_sampling.training_data_builders.rotated_distance_builder import RotatedDistanceBuilder
@@ -33,7 +32,6 @@ texture = np.where(texture == 0, 1, 2)
 simulation_size = texture.shape
 template_size = np.array([13, 13])
 
-texture_precondition_builder = TexturePreconditionBuilder(simulation_size)
 precondition_matrix = np.zeros(simulation_size)
 
 simulation_path_builder = SimulationRandomPathBuilder(template_size, simulation_size)
