@@ -34,3 +34,89 @@ class ClusterProperty:
                                / props['minor_axis_length'])
         return props
     
+    @staticmethod
+    def calc_density(texture):
+        """
+        Calculates the density of objects in the texture.
+
+        Args:
+            texture: The Texture object.
+
+        Returns:
+            float: The density of objects in the texture.
+        """
+        return np.mean(texture > 0)
+    
+    @staticmethod
+    def calc_solidity(texture):
+        """
+        Calculates the solidity of objects in the texture.
+
+        Args:
+            props: The Texture object.
+
+        Returns:
+            float: The solidity of objects in the texture.
+        """
+        props = ClusterProperty.calc_measure_props(texture, ['area', 'solidity'])
+        quant = np.quantile(props['area'].values, 0.75)
+        props = props[props['area'] > quant]
+        return np.mean(props['solidity'])
+    
+    @staticmethod
+    def calc_compactness(texture):
+        """
+        Calculates the compactness of objects in the texture.
+
+        Args:
+            texture: The Texture object.
+
+        Returns:
+            float: The compactness of objects in the texture.
+        """
+        props = ClusterProperty.calc_measure_props(texture, ['area'])
+        quant = np.quantile(props['area'].values, 0.75)
+        props = props[props['area'] > quant]
+        return props['area'].sum() / texture.size
+    
+
+
+
+
+
+    def calc_structural_anisotropy(self, props, n_std=2):
+        props = props[props['area'] > self.area_min]
+        r = props['axis_ratio'].values
+        theta = props['orientation'].values
+
+        r = np.concatenate([r, r])
+        theta = np.concatenate([theta, theta + np.pi])
+
+        dist_ellipse = DistributionEllipseBuilder().build(r, theta, n_std=n_std)
+        return dist_ellipse.anisotropy, dist_ellipse.orientation
+
+    def calc_complexity(self, props):
+        """
+        Calculates the complexity of objects in the texture.
+
+        Args:
+            props: The properties of objects in the texture.
+
+        Returns:
+            float: The complexity of objects in the texture.
+        """
+        props = props[props['area'] > self.area_min]
+        return np.sum(props['complexity'])
+
+    def calc_elongation(self, props):
+        """
+        Calculates the elongation of objects in the texture.
+
+        Args:
+            props: The properties of objects in the texture.
+
+        Returns:
+            float: The elongation of objects in the texture.
+        """
+        props = props[props['area'] > self.area_min]
+        return np.median(props['axis_ratio'])
