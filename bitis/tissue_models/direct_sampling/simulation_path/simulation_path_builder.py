@@ -1,6 +1,7 @@
+from abc import ABC, abstractmethod
 
 
-class SimulationPathBuilder:
+class SimulationPathBuilder(ABC):
     """
     A class that builds simulation paths.
     """
@@ -8,5 +9,6 @@ class SimulationPathBuilder:
     def __init__(self):
         pass
 
+    @abstractmethod
     def build(self):
         pass

@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from skimage import morphology
 
 
-from bitis.tissue_models.direct_sampling.simulation_path_builder.simulation_random_path_builder import SimulationRandomPathBuilder
-from bitis.tissue_models.direct_sampling.simulations.adaptive_simulation import AdaptiveSimulation
-from bitis.tissue_models.direct_sampling.training_data_builders.rotated_distance_builder import RotatedDistanceBuilder
+from bitis.tissue_models.direct_sampling.simulation.path_builder.simulation_random_path_builder import SimulationRandomPathBuilder
+from bitis.tissue_models.direct_sampling.direct_sampling import AdaptiveSimulation
+from bitis.tissue_models.direct_sampling.template_matching.rotated_images_matching import RotatedDistanceBuilder
 
 
 df = pd.read_csv(Path("datasets") / "tissue_dataset.csv")
