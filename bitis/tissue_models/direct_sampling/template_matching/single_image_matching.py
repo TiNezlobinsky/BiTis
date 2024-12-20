@@ -9,16 +9,16 @@ class SingleImageMatching(TemplateMatching):
 
     Attributes:
         training_image (numpy.ndarray): The training image.
-        min_distance (float): The minimum distance threshold. If the minimum
-            distance is more than this value, a random pixel is returned.
+        min_distance (float): The minimum distance threshold. By default,
+            it is set to 0, i.e., the closest pixel is always chosen.
     """
-    def __init__(self, training_image, min_distance=1.0):
+    def __init__(self, training_image, min_distance=.0):
         """
         Args:
             training_image (numpy.ndarray): The training image.
-            min_distance (float): The minimum distance threshold. If the
-                minimum distance is more than this value, a random pixel is
-                returned.
+            min_distance (float): The minimum distance threshold. Values should
+                be in the range [0, 1]. Defaults to 0., i.e., the closest pixel
+                is always chosen.
         """
         super().__init__()
         self.training_image = training_image
@@ -54,8 +54,7 @@ class SingleImageMatching(TemplateMatching):
         return self.best_matching_pixel(template, coord_on_template)
 
     def best_matching_pixel(self, template, coord_on_template):
-        """Calculate the minimum distance index. If minimum distance is less
-        than the distance threshold, return a random index. If multiple indices
+        """Calculate the minimum distance index. If multiple indices
         have the same minimum distance, choose one randomly.
 
         Args:
@@ -65,12 +64,8 @@ class SingleImageMatching(TemplateMatching):
         """
         distance_map = self.calc_distance_map(template)
 
-        threshold = min(distance_map.min(), self.min_distance)
+        threshold = max(distance_map.min(), self.min_distance)
         inds = np.flatnonzero(distance_map <= threshold)
-
-        if len(inds) == 0:
-            return self.random_pixel()
-
         random_ind = np.random.choice(inds)
         coord = np.unravel_index(random_ind, distance_map.shape)
 

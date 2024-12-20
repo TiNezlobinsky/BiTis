@@ -19,8 +19,8 @@ df['Tissue size'] = df['Tissue size'].apply(
 )
 
 # Filter the dataset to extract one specific texture that meets the criteria:
-filtered_df = df[(df['Density'] >= 0.2) &
-                 (df['Density'] <= 0.25) &
+filtered_df = df[(df['Density'] >= 0.3) &
+                 (df['Density'] <= 0.35) &
                  (df['Elongation'] > 2.5)]
 texture = filtered_df["Tissue Matrix"].iloc[0]
 
