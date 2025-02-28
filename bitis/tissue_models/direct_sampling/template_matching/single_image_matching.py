@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 from scipy import fft
 from .template_maching import TemplateMatching
 
@@ -34,9 +35,19 @@ class SingleImageMatching(TemplateMatching):
         # Normalize the image
         image = image.copy().astype(np.float32)
         image[image == 2] = -1
+        image = tf.convert_to_tensor(image, dtype=tf.float32)
         # Precompute the FFT of the image
         self.fft_shape = [fft.next_fast_len(s, True) for s in image.shape]
-        self.fft_image = fft.rfftn(image, s=self.fft_shape, workers=None)
+        if len(self.fft_shape) == 2:
+            self.fft_image = tf.signal.rfft2d(image, self.fft_shape)
+            return
+
+        if len(self.fft_shape) == 3:
+            self.fft_image = tf.signal.rfft3d(image, self.fft_shape)
+            return
+
+        raise ValueError("Only 2D and 3D images are supported.")
+        # self.fft_image = fft.rfftn(image, s=self.fft_shape, workers=None)
 
     def run(self, template, coord_on_template):
         """Calculate the minimum distance index and return the corresponding
@@ -86,10 +97,24 @@ class SingleImageMatching(TemplateMatching):
         """
         template = template.copy()
         template[template == 2] = -1
-        fft_template = fft.rfftn(template, s=self.fft_shape,
-                                 workers=None).conj()
-        matching_pixels = fft.irfftn(self.fft_image * fft_template,
-                                     workers=None).real
+        # fft_template = fft.rfftn(template, s=self.fft_shape,
+        #                          workers=None).conj()
+        # matching_pixels = fft.irfftn(self.fft_image * fft_template,
+        #                              workers=None).real
+        if len(self.fft_shape) == 2:
+            fft_template = tf.math.conj(tf.signal.rfft2d(template,
+                                                         self.fft_shape))
+            matching_pixels = tf.math.real(tf.signal.irfft2d(self.fft_image *
+                                                             fft_template,
+                                                             self.fft_shape))
+
+        if len(self.fft_shape) == 3:
+            fft_template = tf.math.conj(tf.signal.rfft3d(template,
+                                                         self.fft_shape))
+            matching_pixels = tf.math.real(tf.signal.irfft3d(self.fft_image *
+                                                             fft_template,
+                                                             self.fft_shape))
+        matching_pixels = matching_pixels.numpy()
 
         slices = [slice(0, s_tr - s_te + 1)
                   for s_tr, s_te in zip(self.training_image.shape,
