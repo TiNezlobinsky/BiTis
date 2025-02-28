@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from scipy import fft
+from scipy import fft as spfft
 from .template_maching import TemplateMatching
 
 
@@ -22,6 +22,7 @@ class SingleImageMatching(TemplateMatching):
                 is always chosen.
         """
         super().__init__()
+        self.fft_calc = SPFFT()
         self.training_image = training_image
         self.min_distance = min_distance
 
@@ -35,19 +36,9 @@ class SingleImageMatching(TemplateMatching):
         # Normalize the image
         image = image.copy().astype(np.float32)
         image[image == 2] = -1
-        image = tf.convert_to_tensor(image, dtype=tf.float32)
         # Precompute the FFT of the image
-        self.fft_shape = [fft.next_fast_len(s, True) for s in image.shape]
-        if len(self.fft_shape) == 2:
-            self.fft_image = tf.signal.rfft2d(image, self.fft_shape)
-            return
-
-        if len(self.fft_shape) == 3:
-            self.fft_image = tf.signal.rfft3d(image, self.fft_shape)
-            return
-
-        raise ValueError("Only 2D and 3D images are supported.")
-        # self.fft_image = fft.rfftn(image, s=self.fft_shape, workers=None)
+        self.fft_shape = [spfft.next_fast_len(s, True) for s in image.shape]
+        self.fft_image = self.fft_calc.rfftnd(image, self.fft_shape)
 
     def run(self, template, coord_on_template):
         """Calculate the minimum distance index and return the corresponding
@@ -97,25 +88,8 @@ class SingleImageMatching(TemplateMatching):
         """
         template = template.copy()
         template[template == 2] = -1
-        # fft_template = fft.rfftn(template, s=self.fft_shape,
-        #                          workers=None).conj()
-        # matching_pixels = fft.irfftn(self.fft_image * fft_template,
-        #                              workers=None).real
-        if len(self.fft_shape) == 2:
-            fft_template = tf.math.conj(tf.signal.rfft2d(template,
-                                                         self.fft_shape))
-            matching_pixels = tf.math.real(tf.signal.irfft2d(self.fft_image *
-                                                             fft_template,
-                                                             self.fft_shape))
-
-        if len(self.fft_shape) == 3:
-            fft_template = tf.math.conj(tf.signal.rfft3d(template,
-                                                         self.fft_shape))
-            matching_pixels = tf.math.real(tf.signal.irfft3d(self.fft_image *
-                                                             fft_template,
-                                                             self.fft_shape))
-        matching_pixels = matching_pixels.numpy()
-
+        matching_pixels = self.fft_calc.distance_map(self.fft_image, template,
+                                                     self.fft_shape)
         slices = [slice(0, s_tr - s_te + 1)
                   for s_tr, s_te in zip(self.training_image.shape,
                                         template.shape)]
@@ -128,3 +102,41 @@ class SingleImageMatching(TemplateMatching):
         known_pixels = np.count_nonzero(template != 0)
         matching_pixels = 0.5 * (matching_pixels + known_pixels)
         return 1 - matching_pixels / known_pixels
+
+
+class TFFFT:
+    def __init__(self):
+        pass
+
+    def rfftnd(self, image, shape, workers=None):
+        image = tf.convert_to_tensor(image, dtype=tf.float32)
+        if len(shape) == 2:
+            return tf.signal.rfft2d(image, shape)
+        if len(shape) == 3:
+            return tf.signal.rfft3d(image, shape)
+        raise ValueError("Only 2D and 3D images are supported.")
+
+    def irfftnd(self, image, shape, workers=None):
+        if len(shape) == 2:
+            return tf.signal.irfft2d(image, shape)
+        if len(shape) == 3:
+            return tf.signal.irfft3d(image, shape)
+        raise ValueError("Only 2D and 3D images are supported.")
+
+    def distance_map(self, fft_image, template, shape):
+        fft_template = tf.math.conj(tf.signal.rfftnd(template, shape))
+        corr = tf.math.real(self.irfftnd(fft_image * fft_template, shape))
+        return corr.numpy()
+
+
+class SPFFT:
+    def __init__(self):
+        pass
+
+    def rfftnd(self, image, shape, workers=None):
+        return spfft.rfftn(image, s=shape, workers=workers)
+
+    def distance_map(self, fft_image, template, shape, workers=None):
+        fft_template = spfft.rfftn(template, s=shape, workers=workers).conj()
+        corr = spfft.irfftn(fft_image * fft_template, workers=workers).real
+        return corr
