@@ -16,7 +16,7 @@ class AdaptiveSampling(Simulation):
         template_matching (SingleImageMatching): The template matching.
     """
     def __init__(self, simulation_image, training_image, max_known_pixels,
-                 max_template_size, min_template_size=5, min_distance=1.0,
+                 max_template_size, min_template_size=5, min_distance=.0,
                  tissue_mask=None):
         """
         Args:

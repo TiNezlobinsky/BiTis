@@ -36,7 +36,7 @@ class SingleImageMatching(TemplateMatching):
         image[image == 2] = -1
         # Precompute the FFT of the image
         self.fft_shape = [fft.next_fast_len(s, True) for s in image.shape]
-        self.fft_image = fft.rfftn(image, s=self.fft_shape)
+        self.fft_image = fft.rfftn(image, s=self.fft_shape, workers=None)
 
     def run(self, template, coord_on_template):
         """Calculate the minimum distance index and return the corresponding
@@ -86,12 +86,19 @@ class SingleImageMatching(TemplateMatching):
         """
         template = template.copy()
         template[template == 2] = -1
-        fft_template = fft.rfftn(template, s=self.fft_shape).conj()
-        matching_pixels = fft.irfftn(self.fft_image * fft_template).real
+        fft_template = fft.rfftn(template, s=self.fft_shape,
+                                 workers=None).conj()
+        matching_pixels = fft.irfftn(self.fft_image * fft_template,
+                                     workers=None).real
 
-        i_max = self.training_image.shape[0] - template.shape[0] + 1
-        j_max = self.training_image.shape[1] - template.shape[1] + 1
-        matching_pixels = matching_pixels[:i_max, :j_max]
+        slices = [slice(0, s_tr - s_te + 1)
+                  for s_tr, s_te in zip(self.training_image.shape,
+                                        template.shape)]
+        matching_pixels = matching_pixels[tuple(slices)]
+        # using direct slicing could slightly improve the performance
+        # i_max = self.training_image.shape[0] - template.shape[0] + 1
+        # j_max = self.training_image.shape[1] - template.shape[1] + 1
+        # matching_pixels = matching_pixels[:i_max, :j_max]
 
         known_pixels = np.count_nonzero(template != 0)
         matching_pixels = 0.5 * (matching_pixels + known_pixels)
