@@ -1,4 +1,3 @@
-from tqdm import tqdm
 from .simulation import Simulation
 from .simulation_path import PaddedSimulationPathBuilder
 from .template_builders import FixedTemplateBuilder

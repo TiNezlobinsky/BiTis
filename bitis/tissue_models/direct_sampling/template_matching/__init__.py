@@ -1,2 +1,3 @@
 from .single_image_matching import SingleImageMatching
+from .continuous_variable_matching import ContinuousVariableMatching
 from .image_collection_matching import ImageCollectionMatching

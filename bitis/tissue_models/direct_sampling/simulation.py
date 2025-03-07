@@ -23,7 +23,7 @@ class Simulation:
         self.template_matching = None
         # self.template_shapes = []
 
-    def run(self):
+    def run(self, max_iter=None):
         """
         Run simulation.
         """
@@ -32,6 +32,9 @@ class Simulation:
 
         coords = self.path_builder.build()
         self.simulation_image = self.path_builder.simulation_image
+
+        if max_iter is not None:
+            coords = coords[:max_iter]
 
         for coord in tqdm(coords):
             template, coord_on_template = self.template_builder.build(coord)

@@ -9,22 +9,31 @@ class SingleImageMatching(TemplateMatching):
     Template matching with a single image using the FFT.
 
     Attributes:
+        fft_calc (object): The FFT calculator.
         training_image (numpy.ndarray): The training image.
-        min_distance (float): The minimum distance threshold. By default,
-            it is set to 0, i.e., the closest pixel is always chosen.
+        num_of_candidates (int): Number of best matching pixels to consider.
+        min_known_pixels (int): Minimum number of known pixels in the template.
     """
-    def __init__(self, training_image, min_distance=.0):
+    def __init__(self, training_image, num_of_candidates=1, min_known_pixels=1,
+                 use_tf=False):
         """
         Args:
             training_image (numpy.ndarray): The training image.
-            min_distance (float): The minimum distance threshold. Values should
-                be in the range [0, 1]. Defaults to 0., i.e., the closest pixel
-                is always chosen.
+            num_of_candidates (int): Number of best matching pixels to
+                consider.
+            min_known_pixels (int): Minimum number of known pixels in the
+                template.
+            use_tf (bool): Use TensorFlow for the FFT calculation.
         """
         super().__init__()
         self.fft_calc = SPFFT()
+        if use_tf:
+            self.fft_calc = TFFFT()
         self.training_image = training_image
-        self.min_distance = min_distance
+        self.num_of_candidates = num_of_candidates
+        self.min_known_pixels = min_known_pixels
+        self._thresholds = []
+        self._template_size = []
 
     @property
     def training_image(self):
@@ -46,11 +55,13 @@ class SingleImageMatching(TemplateMatching):
 
         Args:
             template (numpy.ndarray): The template.
+            coord_on_template (tuple): The coordinates of the target pixel on
+                the template.
 
         Returns:
             int: The pixel value.
         """
-        if np.count_nonzero(template) == 0:
+        if np.count_nonzero(template) < self.min_known_pixels:
             return self.random_pixel()
 
         return self.best_matching_pixel(template, coord_on_template)
@@ -64,14 +75,25 @@ class SingleImageMatching(TemplateMatching):
             coord_on_template (tuple): The coordinates of the pixel on the
                 template.
         """
-        distance_map = self.calc_distance_map(template)
+        distance_map = self.compute_distance_map(template)
 
-        threshold = max(distance_map.min(), self.min_distance)
-        inds = np.flatnonzero(distance_map <= threshold)
-        random_ind = np.random.choice(inds)
-        coord = np.unravel_index(random_ind, distance_map.shape)
+        if self.num_of_candidates < 1:
+            raise ValueError("The number of candidates must be greater than 0")
 
-        coord = [c + t for c, t in zip(coord, coord_on_template)]
+        if self.num_of_candidates == 1:
+            best_inds = distance_map.argmin()
+            coord = np.unravel_index(best_inds, distance_map.shape)
+            coord = [c + t for c, t in zip(coord, coord_on_template)]
+            return self.training_image[*coord]
+
+        inds = np.argpartition(distance_map.ravel(), self.num_of_candidates)
+        inds = np.unravel_index(inds[:self.num_of_candidates],
+                                distance_map.shape)
+
+        random_ind = np.random.randint(self.num_of_candidates)
+
+        coord = [c[random_ind] + t for c, t in zip(inds, coord_on_template)]
+        # self._template_size.append(template.shape)
         return self.training_image[*coord]
 
     def random_pixel(self):
@@ -79,7 +101,7 @@ class SingleImageMatching(TemplateMatching):
         coord = [np.random.randint(i) for i in self.training_image.shape]
         return self.training_image[*coord]
 
-    def calc_distance_map(self, template):
+    def compute_distance_map(self, template):
         """Calculate the distance map between the training image and
         the template.
 
@@ -88,17 +110,17 @@ class SingleImageMatching(TemplateMatching):
         """
         template = template.copy()
         template[template == 2] = -1
-        matching_pixels = self.fft_calc.distance_map(self.fft_image, template,
-                                                     self.fft_shape)
+
+        fft_template = self.fft_calc.rfftnd(template, self.fft_shape)
+        matching_pixels = self.fft_calc.irfftnd(
+            self.fft_calc.multiply(self.fft_image, fft_template),
+            self.fft_shape
+        )
+
         slices = [slice(0, s_tr - s_te + 1)
                   for s_tr, s_te in zip(self.training_image.shape,
                                         template.shape)]
         matching_pixels = matching_pixels[tuple(slices)]
-        # using direct slicing could slightly improve the performance
-        # i_max = self.training_image.shape[0] - template.shape[0] + 1
-        # j_max = self.training_image.shape[1] - template.shape[1] + 1
-        # matching_pixels = matching_pixels[:i_max, :j_max]
-
         known_pixels = np.count_nonzero(template != 0)
         matching_pixels = 0.5 * (matching_pixels + known_pixels)
         return 1 - matching_pixels / known_pixels
@@ -118,15 +140,13 @@ class TFFFT:
 
     def irfftnd(self, image, shape, workers=None):
         if len(shape) == 2:
-            return tf.signal.irfft2d(image, shape)
+            return tf.math.real(tf.signal.irfft2d(image, shape)).numpy()
         if len(shape) == 3:
-            return tf.signal.irfft3d(image, shape)
+            return tf.math.real(tf.signal.irfft3d(image, shape)).numpy()
         raise ValueError("Only 2D and 3D images are supported.")
 
-    def distance_map(self, fft_image, template, shape):
-        fft_template = tf.math.conj(tf.signal.rfftnd(template, shape))
-        corr = tf.math.real(self.irfftnd(fft_image * fft_template, shape))
-        return corr.numpy()
+    def multiply(self, image1, image2):
+        return image1 * tf.math.conj(image2)
 
 
 class SPFFT:
@@ -136,7 +156,8 @@ class SPFFT:
     def rfftnd(self, image, shape, workers=None):
         return spfft.rfftn(image, s=shape, workers=workers)
 
-    def distance_map(self, fft_image, template, shape, workers=None):
-        fft_template = spfft.rfftn(template, s=shape, workers=workers).conj()
-        corr = spfft.irfftn(fft_image * fft_template, workers=workers).real
-        return corr
+    def irfftnd(self, image, shape, workers=None):
+        return spfft.irfftn(image, shape, workers=workers).real
+
+    def multiply(self, image1, image2):
+        return image1 * image2.conj()

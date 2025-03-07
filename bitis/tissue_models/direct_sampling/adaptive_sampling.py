@@ -16,8 +16,8 @@ class AdaptiveSampling(Simulation):
         template_matching (SingleImageMatching): The template matching.
     """
     def __init__(self, simulation_image, training_image, max_known_pixels,
-                 max_template_size, min_template_size=5, min_distance=.0,
-                 tissue_mask=None):
+                 max_template_size, min_template_size=5, num_of_candidates=1,
+                 min_known_pixels=1, tissue_mask=None, use_tf=False):
         """
         Args:
             simulation_image (numpy.ndarray): The simulation image.
@@ -26,9 +26,11 @@ class AdaptiveSampling(Simulation):
                 template.
             max_template_size (int): The maximum size of the template.
             min_template_size (int): The minimum size of the template.
-            min_distance (float): The minimum distance between the pixel
-                values.
+            num_of_candidates (int): The number of candidates to select from.
+            min_known_pixels (int): The minimum number of known pixels in the
+                template.
             tissue_mask (numpy.ndarray): Boolean mask for tissue pixels.
+            use_tf (bool): Whether to use TensorFlow for template matching.
         """
         super().__init__()
         self.path_builder = RandomSimulationPathBuilder(simulation_image,
@@ -38,4 +40,6 @@ class AdaptiveSampling(Simulation):
                                                         max_template_size,
                                                         min_template_size)
         self.template_matching = SingleImageMatching(training_image,
-                                                     min_distance)
+                                                     num_of_candidates,
+                                                     min_known_pixels,
+                                                     use_tf=use_tf)
