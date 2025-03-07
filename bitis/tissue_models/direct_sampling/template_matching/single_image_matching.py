@@ -32,7 +32,7 @@ class SingleImageMatching(TemplateMatching):
         self.training_image = training_image
         self.num_of_candidates = num_of_candidates
         self.min_known_pixels = min_known_pixels
-        self._thresholds = []
+        self._best_index = -1
         self._template_size = []
 
     @property
@@ -84,6 +84,7 @@ class SingleImageMatching(TemplateMatching):
             best_inds = distance_map.argmin()
             coord = np.unravel_index(best_inds, distance_map.shape)
             coord = [c + t for c, t in zip(coord, coord_on_template)]
+            self._best_index = np.ravel_multi_index(coord, self.training_image.shape)
             return self.training_image[*coord]
 
         inds = np.argpartition(distance_map.ravel(), self.num_of_candidates)
@@ -94,11 +95,15 @@ class SingleImageMatching(TemplateMatching):
 
         coord = [c[random_ind] + t for c, t in zip(inds, coord_on_template)]
         # self._template_size.append(template.shape)
+        self._best_index = np.ravel_multi_index(coord, self.training_image.shape)
         return self.training_image[*coord]
 
     def random_pixel(self):
         """Return a random pixel from the training image."""
         coord = [np.random.randint(i) for i in self.training_image.shape]
+
+        self._best_index = np.ravel_multi_index(coord, self.training_image.shape)
+
         return self.training_image[*coord]
 
     def compute_distance_map(self, template):

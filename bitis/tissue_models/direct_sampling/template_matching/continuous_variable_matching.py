@@ -25,7 +25,8 @@ class ContinuousVariableMatching(SingleImageMatching):
         template = template.astype(np.float32)
 
         fft_template = self.fft_calc.rfftnd(template, self.fft_shape)
-        fft_ones = self.fft_calc.rfftnd(np.ones_like(template), self.fft_shape)
+        fft_ones = self.fft_calc.rfftnd((template != 0).astype(np.float32),
+                                        self.fft_shape)
         fft_dist = (self.fft_calc.multiply(self.fft_image2, fft_ones) -
                     2 * self.fft_calc.multiply(self.fft_image, fft_template))
         dist = self.fft_calc.irfftnd(fft_dist, self.fft_shape)

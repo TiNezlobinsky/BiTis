@@ -25,10 +25,10 @@ texture = filtered_df["Tissue Matrix"].iloc[0]
 # 1 - healthy tissue, 2 - fibrosis
 texture = np.where(texture == 0, 1, 2)
 
-texture_ = texture[:, :]
-simulation_tex = np.zeros(texture_.shape)
+training_tex = texture[:, :].astype(np.float32)
+simulation_tex = np.zeros_like(training_tex)
 simulation = bt.AdaptiveSampling(simulation_tex,
-                                 texture_,
+                                 training_tex,
                                  max_known_pixels=30,
                                  max_template_size=50,
                                  min_template_size=5,
@@ -36,7 +36,13 @@ simulation = bt.AdaptiveSampling(simulation_tex,
 
 simulated_tex = simulation.run()
 
-fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-ax[0].imshow(texture_)
+fig, ax = plt.subplots(1, 3, figsize=(10, 5), sharex=True, sharey=True)
+ax[0].imshow(training_tex)
 ax[1].imshow(simulated_tex)
+ax[2].imshow(simulation._index_map)
 plt.show()
+
+# fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+# ax[0].imshow(texture_)
+# ax[1].imshow(simulated_tex)
+# plt.show()

@@ -25,16 +25,18 @@ texture = filtered_df["Tissue Matrix"].iloc[0]
 
 # 1 - healthy tissue, 2 - fibrosis
 texture = np.where(texture == 0, 1, 2)
-training_image = ndimage.gaussian_filter(texture.astype(np.float32), sigma=2)
+training_image = texture.astype(np.float32)
+
+# training_image = ndimage.gaussian_filter(texture.astype(np.float32), sigma=1)
 
 max_known_pixels = 30
 max_template_size = 50
-min_template_size = 5
-num_of_candidates = 1
+min_template_size = 3
+num_of_candidates = 5
 min_known_pixels = 1
 use_tf = False
 
-simulation_tex = np.zeros(training_image.shape)
+simulation_tex = np.zeros_like(training_image)
 simulation = bt.Simulation()
 simulation.path_builder = bt.RandomSimulationPathBuilder(simulation_tex)
 simulation.template_builder = bt.AdaptiveTemplateBuilder(simulation_tex,
@@ -47,7 +49,8 @@ simulation.template_matching = bt.ContinuousVariableMatching(training_image,
                                                              use_tf)
 simulated_tex = simulation.run()
 
-fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+fig, ax = plt.subplots(1, 3, figsize=(10, 5), sharex=True, sharey=True)
 ax[0].imshow(training_image)
 ax[1].imshow(simulated_tex)
+ax[2].imshow(simulation._index_map)
 plt.show()

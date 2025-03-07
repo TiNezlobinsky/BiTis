@@ -21,7 +21,6 @@ class Simulation:
         self.path_builder = None
         self.template_builder = None
         self.template_matching = None
-        # self.template_shapes = []
 
     def run(self, max_iter=None):
         """
@@ -33,6 +32,10 @@ class Simulation:
         coords = self.path_builder.build()
         self.simulation_image = self.path_builder.simulation_image
 
+        import numpy as np
+
+        self._index_map = np.zeros_like(self.simulation_image)
+
         if max_iter is not None:
             coords = coords[:max_iter]
 
@@ -41,6 +44,6 @@ class Simulation:
             closest_pixel = self.template_matching.run(template,
                                                        coord_on_template)
             self.simulation_image[*coord] = closest_pixel
-            # self.template_shapes.append(template.shape)
+            self._index_map[*coord] = self.template_matching._best_index
 
         return self.simulation_image
