@@ -27,7 +27,7 @@ texture = filtered_df["Tissue Matrix"].iloc[0]
 texture = np.where(texture == 0, 1, 2)
 training_image = texture.astype(np.float32)
 
-# training_image = ndimage.gaussian_filter(texture.astype(np.float32), sigma=1)
+training_image = ndimage.gaussian_filter(texture.astype(np.float32), sigma=10)
 
 max_known_pixels = 30
 max_template_size = 50
