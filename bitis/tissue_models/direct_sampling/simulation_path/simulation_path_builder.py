@@ -12,3 +12,9 @@ class SimulationPathBuilder(ABC):
     @abstractmethod
     def build(self):
         pass
+
+    def update(self, coord, value):
+        """
+        Update the simulation image with the value at the given coordinate.
+        """
+        self.simulation_image[*coord] = value

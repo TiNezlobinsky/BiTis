@@ -34,7 +34,6 @@ max_template_size = 40
 min_template_size = 3
 num_of_candidates = 2
 min_known_pixels = 1
-use_tf = False
 
 simulation_tex = np.zeros_like(training_image)
 simulation = bt.Simulation()
@@ -45,8 +44,7 @@ simulation.template_builder = bt.AdaptiveTemplateBuilder(simulation_tex,
                                                          min_template_size)
 simulation.template_matching = bt.ContinuousVariableMatching(training_image,
                                                              num_of_candidates,
-                                                             min_known_pixels,
-                                                             use_tf)
+                                                             min_known_pixels)
 simulated_tex = simulation.run()
 
 fig, ax = plt.subplots(1, 3, figsize=(10, 5), sharex=True, sharey=True)

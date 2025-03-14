@@ -1,8 +1,8 @@
 import numpy as np
-from .simulation_path_builder import SimulationPathBuilder
+from .random_simulation_path_builder import RandomSimulationPathBuilder
 
 
-class RandomSimulationPathBuilder(SimulationPathBuilder):
+class MultivariateSimulationPathBuilder(RandomSimulationPathBuilder):
     """
     Attributes:
         simulation_image (numpy.ndarray): The simulation image.
@@ -13,10 +13,8 @@ class RandomSimulationPathBuilder(SimulationPathBuilder):
             simulation_image (numpy.ndarray): The simulation image.
             tissue_mask (numpy.ndarray): Boolean mask for tissue pixels.
         """
-        super().__init__()
-        self.simulation_image = simulation_image
-        self.tissue_mask = tissue_mask
-        self.coords = None
+        super().__init__(simulation_image, tissue_mask)
+        self.joint_image = np.zeros_like(simulation_image)
 
     def build(self):
         """
@@ -35,3 +33,10 @@ class RandomSimulationPathBuilder(SimulationPathBuilder):
         np.random.shuffle(coords)
         self.coords = coords
         return self.coords
+
+    def update(self, coord, values):
+        """
+        Update the simulation image with the value at the given coordinate.
+        """
+        self.simulation_image[*coord] = values[0]
+        self.joint_image[*coord] = values[1]

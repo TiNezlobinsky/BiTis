@@ -1,13 +1,15 @@
 import numpy as np
 from scipy import fft as spfft
-from .single_image_matching import SingleImageMatching
+from .binary_image_matching import BinaryImageMatching
 
 
-class ContinuousVariableMatching(SingleImageMatching):
-    def __init__(self, training_image, num_of_candidates=1, min_known_pixels=1,
-                 use_tf=False):
-        super().__init__(training_image, num_of_candidates, min_known_pixels,
-                         use_tf)
+class ContinuousVariableMatching(BinaryImageMatching):
+    def __init__(self,
+                 training_image,
+                 num_of_candidates=1,
+                 min_known_pixels=1
+                 ):
+        super().__init__(training_image, num_of_candidates, min_known_pixels)
 
     @property
     def training_image(self):
@@ -21,7 +23,16 @@ class ContinuousVariableMatching(SingleImageMatching):
         self.fft_image = self.fft_calc.rfftnd(image, self.fft_shape)
         self.fft_image2 = self.fft_calc.rfftnd(image ** 2, self.fft_shape)
 
-    def compute_distance_map(self, template, coord_on_template):
+    def compute_distance_map(self, template):
+        """Compute the distance map between the template and the training
+        image as the square root of the sum of the squared differences.
+
+        Args:
+            template (numpy.ndarray): The template.
+
+        Returns:
+            numpy.ndarray: The distance map.
+        """
         template = template.astype(np.float32)
 
         fft_template = self.fft_calc.rfftnd(template, self.fft_shape)

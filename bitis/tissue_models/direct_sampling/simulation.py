@@ -1,11 +1,10 @@
+import numpy as np
 from tqdm import tqdm
 
 
 class Simulation:
     """
     Attributes:
-        simulation_image: np.ndarray
-            The image that will be created by the simulation
         precondition: Precondition
             The precondition that will be applied to the simulation image
         path_builder: SimulationPathBuilder
@@ -16,7 +15,6 @@ class Simulation:
             The template matching that will be used to find the closest pixel
     """
     def __init__(self):
-        self.simulation_image = None
         self.precondition = None
         self.path_builder = None
         self.template_builder = None
@@ -30,20 +28,16 @@ class Simulation:
             self.precondition.apply()
 
         coords = self.path_builder.build()
-        self.simulation_image = self.path_builder.simulation_image
 
-        import numpy as np
-
-        self._index_map = np.zeros_like(self.simulation_image)
+        self._index_map = np.zeros_like(self.path_builder.simulation_image)
 
         if max_iter is not None:
             coords = coords[:max_iter]
 
         for coord in tqdm(coords):
-            template, coord_on_template = self.template_builder.build(coord)
-            closest_pixel = self.template_matching.run(template,
-                                                       coord_on_template)
-            self.simulation_image[*coord] = closest_pixel
+            template = self.template_builder.build(coord)
+            best_match = self.template_matching.run(coord, template)
+            self.path_builder.update(coord, best_match)
             self._index_map[*coord] = self.template_matching._best_index
 
-        return self.simulation_image
+        return self.path_builder.simulation_image

@@ -33,7 +33,7 @@ simulation = bt.AdaptiveSampling(simulation_tex,
                                  min_known_pixels=5,
                                  max_template_size=50,
                                  min_template_size=5,
-                                 num_of_candidates=3)
+                                 n_candidates=1)
 
 simulated_tex = simulation.run()
 
