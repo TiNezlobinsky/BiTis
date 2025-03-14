@@ -30,9 +30,10 @@ simulation_tex = np.zeros_like(training_tex)
 simulation = bt.AdaptiveSampling(simulation_tex,
                                  training_tex,
                                  max_known_pixels=30,
+                                 min_known_pixels=5,
                                  max_template_size=50,
                                  min_template_size=5,
-                                 num_of_candidates=5)
+                                 num_of_candidates=3)
 
 simulated_tex = simulation.run()
 

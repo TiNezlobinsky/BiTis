@@ -75,7 +75,7 @@ class SingleImageMatching(TemplateMatching):
             coord_on_template (tuple): The coordinates of the pixel on the
                 template.
         """
-        distance_map = self.compute_distance_map(template)
+        distance_map = self.compute_distance_map(template, coord_on_template)
 
         if self.num_of_candidates < 1:
             raise ValueError("The number of candidates must be greater than 0")
@@ -87,26 +87,60 @@ class SingleImageMatching(TemplateMatching):
             self._best_index = np.ravel_multi_index(coord, self.training_image.shape)
             return self.training_image[*coord]
 
-        inds = np.argpartition(distance_map.ravel(), self.num_of_candidates)
-        inds = np.unravel_index(inds[:self.num_of_candidates],
-                                distance_map.shape)
-
+        # inds = np.argpartition(distance_map.ravel(), self.num_of_candidates)
+        # inds = np.unravel_index(inds[:self.num_of_candidates],
+        #                         distance_map.shape)
+        coords = self.closest_pixels(distance_map, self.num_of_candidates)
         random_ind = np.random.randint(self.num_of_candidates)
 
-        coord = [c[random_ind] + t for c, t in zip(inds, coord_on_template)]
+        self._best_index = distance_map[coords[0][random_ind],
+                                        coords[1][random_ind]]
+
+        coord = [c[random_ind] + t for c, t in zip(coords, coord_on_template)]
         # self._template_size.append(template.shape)
-        self._best_index = np.ravel_multi_index(coord, self.training_image.shape)
+        # self._best_index = np.ravel_multi_index(coord, self.training_image.shape)
         return self.training_image[*coord]
+
+    def closest_pixels(self, distance_map, num_of_candidates):
+        """Calculate the minimum distance index. If multiple indices
+        have the same minimum distance, choose one randomly.
+
+        Args:
+            distance_map (numpy.ndarray): The distance map.
+            num_of_candidates (int): Number of best matching pixels to
+                consider.
+        """
+        min_value = distance_map.min()
+        max_value = distance_map.max()
+        n = 256
+
+        median = min_value + (max_value - min_value) / n
+        distances = distance_map.ravel()
+
+        mask = distances < median
+        while distances[mask].size < num_of_candidates:
+            n //= 2
+            median = min_value + (max_value - min_value) / n
+            mask = distances < median
+
+        inds = np.where(mask)[0]
+        candidates = distances[mask]
+        if len(candidates) == num_of_candidates:
+            return np.unravel_index(inds, distance_map.shape)
+
+        inds_ = np.argpartition(candidates,
+                                num_of_candidates)[:num_of_candidates]
+        return np.unravel_index(inds[inds_], distance_map.shape)
 
     def random_pixel(self):
         """Return a random pixel from the training image."""
         coord = [np.random.randint(i) for i in self.training_image.shape]
 
-        self._best_index = np.ravel_multi_index(coord, self.training_image.shape)
+        # self._best_index = np.ravel_multi_index(coord, self.training_image.shape)
 
         return self.training_image[*coord]
 
-    def compute_distance_map(self, template):
+    def compute_distance_map(self, template, coord_on_template):
         """Calculate the distance map between the training image and
         the template.
 

@@ -21,7 +21,7 @@ class ContinuousVariableMatching(SingleImageMatching):
         self.fft_image = self.fft_calc.rfftnd(image, self.fft_shape)
         self.fft_image2 = self.fft_calc.rfftnd(image ** 2, self.fft_shape)
 
-    def compute_distance_map(self, template):
+    def compute_distance_map(self, template, coord_on_template):
         template = template.astype(np.float32)
 
         fft_template = self.fft_calc.rfftnd(template, self.fft_shape)
@@ -34,4 +34,4 @@ class ContinuousVariableMatching(SingleImageMatching):
                   for s_tr, s_te in zip(self.training_image.shape,
                                         template.shape)]
         dist = dist[tuple(slices)]
-        return dist
+        return np.sqrt(np.abs(dist + np.sum(template ** 2)))

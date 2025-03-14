@@ -30,9 +30,9 @@ training_image = texture.astype(np.float32)
 training_image = ndimage.gaussian_filter(texture.astype(np.float32), sigma=10)
 
 max_known_pixels = 30
-max_template_size = 50
+max_template_size = 40
 min_template_size = 3
-num_of_candidates = 5
+num_of_candidates = 2
 min_known_pixels = 1
 use_tf = False
 
