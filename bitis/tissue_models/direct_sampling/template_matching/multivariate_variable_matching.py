@@ -34,9 +34,13 @@ class MultivariateVariableMatching(BinaryImageMatching):
 
         distance_map = self.compute_distance_map(coord, template)
         best_coord = self.find_best_match(distance_map, coord_on_template)
-        res = (self.training_image[*best_coord],
-               self.joint_training_image[*best_coord])
-        return res
+        training_pixel = self.training_image[*best_coord]
+        joint_training_pixel = self.joint_training_image[*best_coord]
+
+        if self.joint_training_image.ndim > self.training_image.ndim:
+            joint_training_pixel = joint_training_pixel.mean()
+
+        return (training_pixel, joint_training_pixel)
 
     def random_pixel(self):
         """Return a random pixel value from the training image.
@@ -44,10 +48,15 @@ class MultivariateVariableMatching(BinaryImageMatching):
         Returns:
             int: The pixel value.
         """
-        i = np.random.randint(0, self.training_image.shape[0])
-        j = np.random.randint(0, self.training_image.shape[1])
-        return (self.training_image[i, j],
-                self.joint_training_image[i, j])
+        coord = [np.random.randint(0, ts)
+                 for ts in self.training_image.shape]
+        training_pixel = self.training_image[*coord]
+        joint_training_pixel = self.joint_training_image[*coord]
+
+        if self.joint_training_image.ndim > training_pixel.ndim:
+            joint_training_pixel = joint_training_pixel.mean()
+
+        return (training_pixel, joint_training_pixel)
 
     def compute_distance_map(self, coord, template):
         """Compute the distance map between the template and the training
@@ -65,9 +74,12 @@ class MultivariateVariableMatching(BinaryImageMatching):
         distance_map = super().compute_distance_map(template)
         joint_map = np.abs(self.joint_training_image -
                            self.joint_simulated_image[*coord])
-        i_min = template.shape[0] // 2
-        j_min = template.shape[1] // 2
-        i_max = i_min + distance_map.shape[0]
-        j_max = j_min + distance_map.shape[1]
-        distance_map = distance_map + joint_map[i_min:i_max, j_min:j_max]
+
+        if joint_map.ndim > distance_map.ndim:
+            joint_map = joint_map.mean(axis=-1)
+
+        slices = tuple([slice(ts // 2, ts // 2 + ds)
+                        for ts, ds in zip(template.shape, distance_map.shape)])
+
+        distance_map = distance_map + joint_map[slices]
         return distance_map
