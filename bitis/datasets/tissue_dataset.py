@@ -16,7 +16,7 @@ def tissue_dataset():
     def convert_to_numpy(x):
         return np.array(ast.literal_eval(x))
 
-    path = Path(__file__).parent / "tissue_dataset.csv"
+    path = Path(__file__).parent / "DS_TEST.csv"
     df = pd.read_csv(path)
     df['Tissue Matrix'] = df['Tissue Matrix'].apply(convert_to_numpy)
     df['Tissue size'] = df['Tissue size'].apply(ast.literal_eval)
