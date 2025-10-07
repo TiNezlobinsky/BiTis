@@ -36,6 +36,7 @@ class ContinuousVariableMatching(BinaryImageMatching):
         template = template.astype(np.float32)
 
         fft_template = self.fft_calc.rfftnd(template, self.fft_shape)
+        # TODO: replace template != 0 with simulation mask
         fft_ones = self.fft_calc.rfftnd((template != 0).astype(np.float32),
                                         self.fft_shape)
         fft_dist = (self.fft_calc.multiply(self.fft_image2, fft_ones) -

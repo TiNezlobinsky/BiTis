@@ -2,3 +2,4 @@ from .binary_image_matching import BinaryImageMatching
 from .continuous_variable_matching import ContinuousVariableMatching
 from .image_collection_matching import ImageCollectionMatching
 from .multivariate_variable_matching import MultivariateVariableMatching
+from .rotated_images_matching import RotatedImagesMatching

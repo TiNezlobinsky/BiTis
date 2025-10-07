@@ -13,7 +13,7 @@ class MultivariateVariableMatching(BinaryImageMatching):
         self.joint_training_image = joint_training_image
         self.joint_simulated_image = joint_simulated_image
 
-    def run(self, coord, template_args):
+    def run(self, template, coord, coord_on_template, **kwargs):
         """Calculate the minimum distance index and return the corresponding
         pixel value.
 
@@ -25,7 +25,6 @@ class MultivariateVariableMatching(BinaryImageMatching):
         Returns:
             int: The pixel value.
         """
-        template, coord_on_template = template_args
         if self.n_candidates < 1:
             raise ValueError("Number of candidates must be greater than 0.")
 

@@ -1,93 +1,59 @@
 import numpy as np
-from scipy import signal
 from skimage import transform
+from .foobar_matching import FooBarMatching
+from .binary_image_matching import BinaryImageMatching
 
 
-class RotatedImagesMatching:
+class RotatedImagesMatching(FooBarMatching):
     """
     Attributes:
         image (numpy.ndarray): The training image.
         distance_threshold (float): The distance threshold.
     """
-    def __init__(self, image, angle_matrix, distance_threshold=0.0):
-        self.image              = image
-        self.angle_matrix       = angle_matrix
-        self.distance_threshold = distance_threshold
 
-        self.rotated_images = {}
+    def __init__(self,
+                 base_image,
+                 angle_map,
+                 base_angle=0,
+                 **kwargs):
 
-        self.calc_rotations(image, angle_matrix)
+        super().__init__()
+        self.angle_map = np.round(angle_map).astype(int)
+        self.buid_template_matchers(base_image, base_angle)
+        self._best_index = -1
 
-    def calc_rotations(self, image, angle):
-        angles = list(np.unique(self.angle_matrix))
-        for angle in angles:
-            rotated_image = transform.rotate(image, angle, resize=True, preserve_range=True, order=0)
+    def buid_template_matchers(self, base_image, base_angle, **kwargs):
+        angle_list = np.unique(self.angle_map)
 
-            non_empty_mask = rotated_image != 0
+        for angle in angle_list:
+            rotated_image = self.rotate_image(base_image, angle - base_angle)
+            template_matcher = BinaryImageMatching(rotated_image, **kwargs)
+            self.template_matchers[angle] = template_matcher
 
-            non_zero_coords = np.argwhere(non_empty_mask)
-            top_left = non_zero_coords.min(axis=0)
-            bottom_right = non_zero_coords.max(axis=0) + 1  # Add 1 to include the max row/column
+    def run(self, template, coord, coord_on_template, **kwargs):
+        selector = self.angle_map[*coord]
+        self._best_index = -1
+        return super().run(template,
+                           selector,
+                           coord_on_template=coord_on_template,
+                           **kwargs)
 
-            cropped_image = rotated_image[top_left[0]:bottom_right[0], top_left[1]:bottom_right[1]]
+    def rotate_image(self, base_image, angle):
+        theta = np.radians(angle)
 
-            self.rotated_images[angle] = cropped_image
+        w, h = base_image.shape[1], base_image.shape[0]
+        cx, cy = w / 2, h / 2
 
-    def calc_distance_map(self, image, template):
-        """Calculate the distance map between the training image and
-        the template.
+        # Rotated center position
+        cx_rot = cx * np.cos(theta) - cy * np.sin(theta)
+        cy_rot = cx * np.sin(theta) + cy * np.cos(theta)
 
-        Args:
-            image (numpy.ndarray): The training image.
-            template (numpy.ndarray): The template.
-        """
-        dist_fibr = signal.correlate((image == 2).astype(float),
-                                     (template == 2).astype(float),
-                                     mode='valid', method='fft')
-        dist_myo = signal.correlate((image == 1).astype(float),
-                                    (template == 1).astype(float),
-                                    mode='valid', method='fft')
-        dist = dist_fibr + dist_myo
-        return dist / (template > 0).sum()
+        # Translation needed to recenter
+        tx = cx - cx_rot
+        ty = cy - cy_rot
 
-    def calc_min_distance_idx(self, template, image):
-        """Calculate the minimum distance index. If minimum distance is less
-        than the distance threshold, return a random index.
-
-        Args:
-            template (numpy.ndarray): The template.
-        """
-        if template.sum() == 0:
-            x = np.random.randint(image.shape[0])
-            y = np.random.randint(image.shape[1])
-            return x, y
-
-        distance_map = self.calc_distance_map(image, template)
-        distance_threshold = max(distance_map.max(), self.distance_threshold)
-        coords = np.argwhere(distance_map >= distance_threshold)
-
-        if len(coords) == 0:
-            x = np.random.randint(image.shape[0])
-            y = np.random.randint(image.shape[1])
-            return x, y
-
-        i = np.random.choice(np.arange(len(coords)))
-        x, y = coords[i]
-        x += template.shape[0] // 2
-        y += template.shape[1] // 2
-        return x, y
-
-    def build(self, template, i, j):
-        """Calculate the minimum distance index and return the corresponding
-        pixel value.
-
-        Args:
-            template (numpy.ndarray): The template.
-
-        Returns:
-            int: The pixel value.
-        """
-        angle = self.angle_matrix[i, j]
-        image = self.rotated_images[angle]
-        x, y = self.calc_min_distance_idx(template, image)
-        return image[x, y]
+        tform = transform.EuclideanTransform(rotation=theta,
+                                             translation=(tx, ty))
+        tf_img = transform.warp(base_image, tform.inverse, preserve_range=True,
+                                order=0)
+        return tf_img

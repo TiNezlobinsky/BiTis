@@ -44,16 +44,16 @@ class BinaryImageMatching(TemplateMatching):
         self.fft_shape = [spfft.next_fast_len(s, True) for s in image.shape]
         self.fft_image = self.fft_calc.rfftnd(image, self.fft_shape)
 
-    def run(self, coord, template_args):
+    def run(self, template, coord_on_template, **kwargs):
         """Search for the best matching pixel in the training image.
 
         Args:
-            coord (tuple): The coordinates of the target pixel.
-            template_args (tuple): The output of the template builder. The
-                first element is the template and the second element is the
-                coordinates of the target pixel on the template.
+            template (numpy.ndarray): The template to match.
+            coord (tuple): The coordinates of the target pixel in the
+                simulation image.
+            coord_on_template (tuple): The coordinates of the target pixel on
+                the template.
         """
-        template, coord_on_template = template_args
         if self.n_candidates < 1:
             raise ValueError("Number of candidates must be greater than 0.")
 

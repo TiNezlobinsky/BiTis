@@ -20,6 +20,7 @@ class ImageCollectionMatching(TemplateMatching):
         super().__init__()
         self._training_collection = []
         self._training_images = training_images
+        self._best_index = -1
 
         if template_size is not None:
             self.template_size = template_size
@@ -55,7 +56,6 @@ class ImageCollectionMatching(TemplateMatching):
             self.build_collection(image)
         
         self._training_collection = np.array(self._training_collection)
-        print(self._training_collection.shape)
 
     def build_collection(self, image):
         """
@@ -97,6 +97,7 @@ class ImageCollectionMatching(TemplateMatching):
         if np.count_nonzero(template != 0) == 0:
             id = np.random.randint(len(self._training_collection))
             tr_template = self._training_collection[id]
+            self._best_index = id
             return tr_template[*[s // 2 for s in tr_template.shape]]
 
         random_ids = np.random.permutation(len(self._training_collection))
@@ -109,11 +110,13 @@ class ImageCollectionMatching(TemplateMatching):
         if np.all(dists > self.min_distance):
             id = random_ids[np.argmin(dists)]
             tr_template = self._training_collection[id]
+            self._best_index = id
             return tr_template[*[s // 2 for s in tr_template.shape]]
 
         id = random_ids[np.argmax(dists <= self.min_distance)]
 
         tr_template = self._training_collection[id]
+        self._best_index = id
         return tr_template[*[s // 2 for s in tr_template.shape]]
 
     def calc_distances(self, template):

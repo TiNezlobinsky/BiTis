@@ -35,8 +35,9 @@ class Simulation:
             coords = coords[:max_iter]
 
         for coord in tqdm(coords):
-            template = self.template_builder.build(coord)
-            best_match = self.template_matching.run(coord, template)
+            template, coord_on_template = self.template_builder.build(coord)
+            best_match = self.template_matching.run(
+                template, coord=coord, coord_on_template=coord_on_template)
             self.path_builder.update(coord, best_match)
             self._index_map[*coord] = self.template_matching._best_index
 

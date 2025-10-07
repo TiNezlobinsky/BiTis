@@ -7,15 +7,7 @@ import matplotlib.pyplot as plt
 import bitis as bt
 
 
-df = pd.read_csv(Path("datasets") / "tissue_dataset.csv")
-
-# Convert string representation of numpy arrays to numpy arrays:
-df['Tissue Matrix'] = df['Tissue Matrix'].apply(
-    lambda x: np.array(ast.literal_eval(x))
-)
-df['Tissue size'] = df['Tissue size'].apply(
-    lambda x: ast.literal_eval(x)
-)
+df = bt.tissue_dataset()
 
 # Filter the dataset to extract one specific texture that meets the criteria:
 filtered_df = df[(df['Density'].between(0.3, 0.35)) &
