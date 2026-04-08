@@ -34,8 +34,8 @@ class MultivariateVariableMatching(BinaryImageMatching):
 
         distance_map = self.compute_distance_map(coord, template)
         best_coord = self.find_best_match(distance_map, coord_on_template)
-        training_pixel = self.training_image[*best_coord]
-        joint_training_pixel = self.joint_training_image[*best_coord]
+        training_pixel = self.training_image[tuple(best_coord)]
+        joint_training_pixel = self.joint_training_image[tuple(best_coord)]
 
         if self.joint_training_image.ndim > self.training_image.ndim:
             joint_training_pixel = joint_training_pixel.mean()
@@ -50,8 +50,8 @@ class MultivariateVariableMatching(BinaryImageMatching):
         """
         coord = [np.random.randint(0, ts)
                  for ts in self.training_image.shape]
-        training_pixel = self.training_image[*coord]
-        joint_training_pixel = self.joint_training_image[*coord]
+        training_pixel = self.training_image[tuple(coord)]
+        joint_training_pixel = self.joint_training_image[tuple(coord)]
 
         if self.joint_training_image.ndim > training_pixel.ndim:
             joint_training_pixel = joint_training_pixel.mean()
@@ -73,7 +73,7 @@ class MultivariateVariableMatching(BinaryImageMatching):
         """
         distance_map = super().compute_distance_map(template)
         joint_map = np.abs(self.joint_training_image -
-                           self.joint_simulated_image[*coord])
+                           self.joint_simulated_image[tuple(coord)])
 
         if joint_map.ndim > distance_map.ndim:
             joint_map = joint_map.mean(axis=-1)

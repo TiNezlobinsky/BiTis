@@ -62,7 +62,7 @@ class BinaryImageMatching(TemplateMatching):
 
         distance_map = self.compute_distance_map(template)
         best_coord = self.find_best_match(distance_map, coord_on_template)
-        return self.training_image[*best_coord]
+        return self.training_image[tuple(best_coord)]
 
     def find_best_match(self, distance_map, coord_on_template):
         """Match the template to the training image.
@@ -95,7 +95,7 @@ class BinaryImageMatching(TemplateMatching):
         self._best_index = np.ravel_multi_index(coord,
                                                 self.training_image.shape)
 
-        return self.training_image[*coord]
+        return self.training_image[tuple(coord)]
 
     def best_match_coord(self, distance_map):
         """Find the best matching pixel.

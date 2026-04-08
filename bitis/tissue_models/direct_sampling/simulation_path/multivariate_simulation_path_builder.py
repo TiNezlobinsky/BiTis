@@ -38,5 +38,5 @@ class MultivariateSimulationPathBuilder(RandomSimulationPathBuilder):
         """
         Update the simulation image with the value at the given coordinate.
         """
-        self.simulation_image[*coord] = values[0]
-        self.joint_image[*coord] = values[1]
+        self.simulation_image[tuple(coord)] = values[0]
+        self.joint_image[tuple(coord)] = values[1]

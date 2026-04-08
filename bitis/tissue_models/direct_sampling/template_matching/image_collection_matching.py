@@ -97,7 +97,7 @@ class ImageCollectionMatching(TemplateMatching):
         if np.count_nonzero(template != 0) == 0:
             id = np.random.randint(len(self._training_collection))
             tr_template = self._training_collection[id]
-            return tr_template[*[s // 2 for s in tr_template.shape]]
+            return tr_template[tuple(s // 2 for s in tr_template.shape)]
 
         random_ids = np.random.permutation(len(self._training_collection))
         random_ids = random_ids[:int(self.max_fraction *
@@ -109,12 +109,12 @@ class ImageCollectionMatching(TemplateMatching):
         if np.all(dists > self.min_distance):
             id = random_ids[np.argmin(dists)]
             tr_template = self._training_collection[id]
-            return tr_template[*[s // 2 for s in tr_template.shape]]
+            return tr_template[tuple(s // 2 for s in tr_template.shape)]
 
         id = random_ids[np.argmax(dists <= self.min_distance)]
 
         tr_template = self._training_collection[id]
-        return tr_template[*[s // 2 for s in tr_template.shape]]
+        return tr_template[tuple(s // 2 for s in tr_template.shape)]
 
     def calc_distances(self, template):
         """

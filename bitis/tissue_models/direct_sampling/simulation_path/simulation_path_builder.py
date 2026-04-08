@@ -17,4 +17,4 @@ class SimulationPathBuilder(ABC):
         """
         Update the simulation image with the value at the given coordinate.
         """
-        self.simulation_image[*coord] = value
+        self.simulation_image[tuple(coord)] = value

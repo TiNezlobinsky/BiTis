@@ -38,6 +38,6 @@ class Simulation:
             template = self.template_builder.build(coord)
             best_match = self.template_matching.run(coord, template)
             self.path_builder.update(coord, best_match)
-            self._index_map[*coord] = self.template_matching._best_index
+            self._index_map[tuple(coord)] = self.template_matching._best_index
 
         return self.path_builder.simulation_image
